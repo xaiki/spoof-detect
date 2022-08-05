@@ -1,0 +1,15 @@
+{
+  "manifest_version": 2,
+  "name": "Spoof detect",
+  "version": "0.1",
+  "icons": {
+    "48": "icons/48.png"
+  },
+  "description": "Try to detect website spoofing",
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["detect.js"]
+    }
+  ]
+}
