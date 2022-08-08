@@ -12,22 +12,20 @@ from entity import Entity
 from common import selectors
 import screenshot
 
-def query_vendor_site(e: Entity):
-    pathlib.Path(f"./data/{e.bco}").mkdir(parents=True, exist_ok=True)
-
+def write_cert(e: Entity):
     ssl_url = e.url.split("/")[2]
     try:
-        page = requests.get(e.url)
-    except Exception:
-        page = requests.get(e.url.replace('http', 'https'))
+        cert = ssl.get_server_certificate((ssl_url, 443), ca_certs=None)
+        with open(f"{e.DATA_PATH}/cert", 'w') as f:
+            f.write(cert)
+    except Exception as err:
+        with open(f"{e.DATA_PATH}/error.log", 'w+') as f:
+            f.write(str(err))
+
+def get_logos(e: Entity, page):
     soup = BeautifulSoup(page.content, "html.parser")
-
     logos = soup.select(selectors.logo)
-    cert = ssl.get_server_certificate((ssl_url, 443), ca_certs=None)
 
-    fn = f"{e.DATA_PATH}/cert"
-    with open(fn, 'w') as f:
-        f.write(cert)
     i = 0
     lfn = []
     for l in logos:
@@ -43,6 +41,18 @@ def query_vendor_site(e: Entity):
             shutil.copyfileobj(res.raw, f)
         lfn.append(fn)
         i+=1
+
+def query_vendor_site(e: Entity):
+    pathlib.Path(f"./data/{e.bco}").mkdir(parents=True, exist_ok=True)
+
+    try:
+        page = requests.get(e.url)
+    except Exception:
+        e.url = e.url.replace('http', 'https')
+        page = requests.get(e.url)
+
+    write_cert(e)
+    get_logos(e, page)
     screenshot.sc_entity(e)
     return (fn, lfn)
 
