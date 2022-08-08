@@ -1,3 +1,8 @@
+let run = () => {
+
+
+}
+
 // Set up a mutation observer to listen for title changes
 // Will fire if framework AJAX stuff switches page title
 let createObserver = function() {
@@ -8,7 +13,7 @@ let createObserver = function() {
         console.log('Mutations!', mutations)
         observer.disconnect()
         observer = null
-        cleanup()
+        run()
         createObserver()
     })
 
@@ -20,4 +25,4 @@ let createObserver = function() {
 createObserver()
 
 // Kick off initial page load check
-cleanup()
+run()

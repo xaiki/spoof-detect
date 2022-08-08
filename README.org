@@ -1,0 +1,15 @@
+#+TITLE: Spoof Detect
+
+* yolo
+https://github.com/ModelDepot/tfjs-yolo-tiny
+https://github.com/Hyuto/yolov5-tfjs
+
+** augmentation
+https://github.com/srp-31/Data-Augmentation-for-Object-Detection-YOLO-
+
+
+* proveedores
+http://www.bcra.gov.ar/SistemasFinancierosYdePagos/Proveedores-servicios-de-pago-ofrecen-cuentas-de-pago.asp
+http://www.bcra.gov.ar/SistemasFinancierosYdePagos/Proveedores-servicios-de-billeteras-digitales-Interoperables.asp
+
+http://www.bcra.gob.ar/SistemasFinancierosYdePagos/Entidades_financieras.asp
