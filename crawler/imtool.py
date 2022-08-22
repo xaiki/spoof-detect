@@ -42,7 +42,9 @@ def read_bounding_boxes(filename):
         lines = f.readlines()
         for l in lines:
             (x,y,w,h) = [float(i) for i in l.split(' ')[1:]]
-            print(x, y, 'box')
+            if x < 0 or y < 0 or w < 10 or h < 10:
+                print(f"dropping logo, it has inconsistent size: {w}x{h}+{x}x{y}")
+                continue
             boxes.append(BoundingBox(x,y,w,h))
     return boxes
 
