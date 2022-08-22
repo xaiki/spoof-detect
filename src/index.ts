@@ -10,12 +10,11 @@ const queue = new PQueue({
   timeout: 60000
 })
 let count = 0
+let statInterval
 queue.addEventListener("active", () =>
   console.log(`Working on item #${++count}.  Size: ${queue.size}  Pending: ${queue.pending}`))
 queue.addEventListener("next", () =>
   console.log(`task finished, Size: ${queue.size} Pending: ${queue.pending}`))
-const statInterval = setInterval(() =>
-  console.log(`Size: ${queue.size}  Pending: ${queue.pending}`), 1000);
 
 queue.addEventListener("idle", async () => {
   clearInterval(statInterval)
@@ -67,5 +66,17 @@ function process(o: { url: string, bco: string, name: string }): Promise<void> {
   })
 }
 
-const text = await Deno.readTextFile("./data/entidades.csv");
-CSV.parse(text, o => queue.add(() => process(o)))
+async function run() {
+  let text;
+  try {
+    text = await Deno.readTextFile("./data/entidades.csv")
+  } catch (e) {
+    console.error(`couldn't read csv: ${e}`)
+  }
+  if (!text) return setTimeout(run, 1000)
+  statInterval = setInterval(() =>
+    console.log(`Size: ${queue.size}  Pending: ${queue.pending}`), 1000);
+
+  CSV.parse(text, o => queue.add(() => process(o)))
+}
+run()
