@@ -61,8 +61,10 @@ def cut_logo(im, l):
 
 def crop(fn, logos):
     basename = os.path.basename(fn).replace('.png', '')
-    out = f"./data/squares"
-    pathlib.Path(out).mkdir(parents=True, exist_ok=True)
+    img_out = f"./data/squares/labels"
+    txt_out = f"./data/squares/labels"
+    pathlib.Path(img_out).mkdir(parents=True, exist_ok=True)
+    pathlib.Path(txt_out).mkdir(parents=True, exist_ok=True)
 
     im = cv2.imread(fn)
 
@@ -117,10 +119,11 @@ def crop(fn, logos):
 
             c = (255, 0, 0)
             nim = im[fy:fy+TILE_SIZE, fx:fx+TILE_SIZE]
-            name =f"{out}/{basename}.{x}.{y}"
-            cv2.imwrite(f"{name}.png", nim)
+            img_name =f"{img_out}/{basename}.{x}.{y}.png"
+            txt_name =f"{txt_out}/{basename}.{x}.{y}.txt"
+            cv2.imwrite(img_name, nim)
             if len(li):
-                with open(f"{name}.txt", 'w') as f:
+                with open(txt_name, 'w') as f:
                     for p in li:
                         cx = cw/2 + p.x
                         cy = ch/2 + p.y
