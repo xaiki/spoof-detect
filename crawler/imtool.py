@@ -39,8 +39,11 @@ class Centroid(BoundingBox):
 def read_bounding_boxes(filename):
     boxes = []
     with open(filename, 'r') as f:
-        (x,y,w,h) = [float(i) for i in f.readline().split(' ')[1:]]
-        boxes.append(BoundingBox(x,y,w,h))
+        lines = f.readlines()
+        for l in lines:
+            (x,y,w,h) = [float(i) for i in l.split(' ')[1:]]
+            print(x, y, 'box')
+            boxes.append(BoundingBox(x,y,w,h))
     return boxes
 
 def floor_point(a, b):
@@ -70,8 +73,8 @@ def crop(fn, logos):
 
     (h, w, c) = im.shape
     (tx, ty)= (
-        math.ceil(w/(TILE_SIZE*TILE_OVERLAP)),
-        math.ceil(h/(TILE_SIZE*TILE_OVERLAP))
+        math.floor(w/(TILE_SIZE*TILE_OVERLAP)),
+        math.floor(h/(TILE_SIZE*TILE_OVERLAP))
     )
 
     print('shape', basename, tx, ty, h, w, logos)
