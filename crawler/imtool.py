@@ -9,7 +9,7 @@ from typing import NamedTuple
 from entity import Entity
 
 TILE_SIZE = 800
-TILE_OVERLAP = 0.8
+TILE_OVERLAP = 0.2
 
 class BoundingBox(NamedTuple):
     x: float = 0.0
@@ -68,6 +68,8 @@ def crop(fn, logos):
     basename = os.path.basename(fn).replace('.png', '')
     img_out = f"./data/squares/images"
     txt_out = f"./data/squares/labels"
+    debug_out = f"./data/debug"
+    pathlib.Path(debug_out).mkdir(parents=True, exist_ok=True)
     pathlib.Path(img_out).mkdir(parents=True, exist_ok=True)
     pathlib.Path(txt_out).mkdir(parents=True, exist_ok=True)
 
@@ -153,7 +155,7 @@ def crop(fn, logos):
                         a = f"{basename} {cx/TILE_SIZE} {cy/TILE_SIZE} {p.w/TILE_SIZE} {p.h/TILE_SIZE}"
                         f.write(a)
                         print(a)
-    cv2.imwrite(f'{basename}.debug.png', im)
+    cv2.imwrite(f'{debug_out}/{basename}.debug.png', im)
 
 if __name__ == '__main__':
     with os.scandir('./data/') as it:
