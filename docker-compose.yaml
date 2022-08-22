@@ -1,5 +1,13 @@
 version: "3.9"  # optional since v1.27.0
 services:
+  crawler:
+    build:
+      dockerfile: Dockerfile.python
+      context: .
+    command: "python3 src/main.py"
+    volumes:
+      - "./data:/app/data:z"
+
   puppet:
     build:
       dockerfile: Dockerfile.deno
@@ -12,7 +20,7 @@ services:
       DEBUG: "puppet"
     depends_on:
       - "browserless"
-    # command: "sh -c 'while echo deno; do sleep 3h; done'" #
+    # command: "sh -c 'while echo deno; do sleep 3h; done'" # debug
     command: "deno run --allow-net --allow-env --allow-read --allow-write src/index.ts"
     volumes:
       # - "./src:/app/src:z" # for debugging
@@ -23,6 +31,7 @@ services:
         condition: any
         delay: 600s
         window: 300s
+
   cutter:
     build:
       dockerfile: Dockerfile.python
@@ -32,6 +41,7 @@ services:
     volumes:
       # - "./crawler:/app/src:z" # for debugging
       - "./data:/app/data:z"
+
   browserless:
      image: docker.io/zenika/alpine-chrome
      entrypoint: ["sh", "-c", "while true; do chromium-browser --headless --use-gl=swiftshader --disable-software-rasterizer --disable-dev-shm-usage --no-sandbox --remote-debugging-address=0.0.0.0 --remote-debugging-port=3000; sleep 2; done"]
