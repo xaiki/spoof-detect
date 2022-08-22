@@ -1,0 +1,8 @@
+FROM docker.io/jjanzic/docker-python3-opencv
+MAINTAINER Niv Sardi <x@filtra.me>
+WORKDIR /app
+
+COPY crawler ./src
+RUN pip install -r ./src/requirements.txt
+
+CMD python3 ./src/watcher.py

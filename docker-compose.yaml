@@ -1,0 +1,40 @@
+version: "3.9"  # optional since v1.27.0
+services:
+  puppet:
+    build:
+      dockerfile: Dockerfile.deno
+      context: .
+    links:
+      - browserless
+    environment:
+      BROWSERLESS_HOST: browserless
+      BROWSERLESS_PORT: 3000
+      DEBUG: "puppet"
+    depends_on:
+      - "browserless"
+    # command: "sh -c 'while echo deno; do sleep 3h; done'" #
+    command: "deno run --allow-net --allow-env --allow-read --allow-write src/index.ts"
+    volumes:
+      # - "./src:/app/src:z" # for debugging
+      - "./data:/app/data:z"
+    #restart: unless-stopped:600
+    deploy:
+      restart_policy:
+        condition: any
+        delay: 600s
+        window: 300s
+  cutter:
+    build:
+      dockerfile: Dockerfile.python
+      context: .
+    depends_on:
+      - "puppet"
+    volumes:
+      # - "./crawler:/app/src:z" # for debugging
+      - "./data:/app/data:z"
+  browserless:
+     image: docker.io/zenika/alpine-chrome
+     entrypoint: ["sh", "-c", "while true; do chromium-browser --headless --use-gl=swiftshader --disable-software-rasterizer --disable-dev-shm-usage --no-sandbox --remote-debugging-address=0.0.0.0 --remote-debugging-port=3000; sleep 2; done"]
+     port:
+       - "3000:3000"
+
