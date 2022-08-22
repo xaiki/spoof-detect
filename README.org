@@ -13,3 +13,8 @@ http://www.bcra.gov.ar/SistemasFinancierosYdePagos/Proveedores-servicios-de-pago
 http://www.bcra.gov.ar/SistemasFinancierosYdePagos/Proveedores-servicios-de-billeteras-digitales-Interoperables.asp
 
 http://www.bcra.gob.ar/SistemasFinancierosYdePagos/Entidades_financieras.asp
+
+* certs in browsers
+https://stackoverflow.com/questions/6566545/is-there-any-way-to-access-certificate-information-from-a-chrome-extension
+https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest#accessing_security_information
+https://chromium-review.googlesource.com/c/chromium/src/+/644858
