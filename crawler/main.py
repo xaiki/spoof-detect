@@ -1,5 +1,5 @@
 import csv
-
+import pathlib
 import requests
 from bs4 import BeautifulSoup
 from progress.bar import ChargingBar
@@ -7,13 +7,14 @@ from progress.bar import ChargingBar
 from entity import Entity
 from common import selectors
 
+pathlib.Path(f"{Entity._DATA_PATH}/logos").mkdir(parents=True, exist_ok=True)
+
 URL = "http://www.bcra.gob.ar/SistemasFinancierosYdePagos/Entidades_financieras.asp"
 page = requests.get(URL)
-
 soup = BeautifulSoup(page.content, "html.parser")
 
 options = soup.find(class_="form-control").find_all('option')
-with open('entidades.csv', 'w', newline='') as csvfile:
+with open('./data/entidades.csv', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile)
     writer.writerow(Entity.row_names())
 

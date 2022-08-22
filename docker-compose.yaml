@@ -12,9 +12,10 @@ services:
       DEBUG: "puppet"
     depends_on:
       - "browserless"
-    command: "sh -c 'while echo deno; do sleep 3h; done'" #"deno run --allow-net --allow-env --allow-read --allow-write src/index.ts"
+    # command: "sh -c 'while echo deno; do sleep 3h; done'" #
+    command: "deno run --allow-net --allow-env --allow-read --allow-write src/index.ts"
     volumes:
-      - "./src-deno:/app/src:z"
+      # - "./src:/app/src:z" # for debugging
       - "./data:/app/data:z"
     #restart: unless-stopped:600
     deploy:
@@ -22,7 +23,15 @@ services:
         condition: any
         delay: 600s
         window: 300s
-
+  cutter:
+    build:
+      dockerfile: Dockerfile.python
+      context: .
+    depends_on:
+      - "puppet"
+    volumes:
+      # - "./crawler:/app/src:z" # for debugging
+      - "./data:/app/data:z"
   browserless:
      image: docker.io/zenika/alpine-chrome
      entrypoint: ["sh", "-c", "while true; do chromium-browser --headless --use-gl=swiftshader --disable-software-rasterizer --disable-dev-shm-usage --no-sandbox --remote-debugging-address=0.0.0.0 --remote-debugging-port=3000; sleep 2; done"]

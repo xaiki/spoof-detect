@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 class Entity():
+    _DATA_PATH = './data'
     def __init__(self, name, bco, url=None, logo=None):
         self.name = name
         self.bco = bco
@@ -35,7 +36,7 @@ Entity:
 
     @property
     def DATA_PATH(self):
-        return f"./data/{self.bco}"
+        return self._DATA_PATH
 
     def to_row(self):
         return [self.name, self.bco, self.url, self.logo]
