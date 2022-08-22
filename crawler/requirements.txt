@@ -1,3 +1,4 @@
 bs4==0.0.1
 progress==1.6
 inotify
+requests
