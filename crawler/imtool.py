@@ -48,8 +48,8 @@ def read_bounding_boxes(filename):
             boxes.append(BoundingBox(x,y,w,h))
     return boxes
 
-def floor_point(a, b):
-    return (math.floor(a), math.floor(b))
+def floor_point(x, y):
+    return (math.floor(x), math.floor(y))
 
 def cut_img(im, s, e):
     x = s[0]
@@ -75,29 +75,37 @@ def crop(fn, logos):
 
     (h, w, c) = im.shape
     (tx, ty)= (
-        math.floor(w/(TILE_SIZE*TILE_OVERLAP)),
-        math.floor(h/(TILE_SIZE*TILE_OVERLAP))
+        math.ceil(w/(TILE_SIZE*TILE_OVERLAP)),
+        math.ceil(h/(TILE_SIZE*TILE_OVERLAP))
     )
 
-    print('shape', basename, tx, ty, h, w, logos)
+    print('shape', basename, tx, ty, w, h, logos)
     for x in range(tx):
         for y in range(ty):
             color = (0,x*(255/tx),y*(255/ty))
 
-            fx = math.floor(x*(w - TILE_SIZE)/(tx))
-            fy = math.floor(y*(h - TILE_SIZE)/(ty))
+            (tw, th) = (min(w, TILE_SIZE), min(h, TILE_SIZE))
+            f = BoundingBox(
+                (w - tw)*x/(tx),
+                (h - th)*y/(ty),
+                tw,
+                th
+            )
 
-            start = (fx, fy)
-            end = (fx + TILE_SIZE, fy + TILE_SIZE)
+            start = floor_point(f.x, f.y)
+            end = floor_point(f.x + f.w, f.y + f.h)
 
-            #im = cv2.rectangle(im, start, end, color, 10)
+            print(x, y, start, end, logos)
+            im = cv2.rectangle(im, start, end, color, 10)
             li = []
             for l in logos:
                 def intersect():
-                    six = l.x - fx
-                    siy = l.y - fy
+                    six = l.x - f.x
+                    siy = l.y - f.y
                     eix = six + l.w
                     eiy = siy + l.h
+
+                    print('intersect', (six, siy), (eix, eiy), f, l)
 
                     if six < 0:
                         if six + l.w < 0:
@@ -107,14 +115,14 @@ def crop(fn, logos):
                         if siy + l.h < 0:
                             return None
                         siy = 0
-                    if eix > TILE_SIZE:
-                        if eix - l.w > TILE_SIZE:
+                    if eix > tw:
+                        if eix - l.w > tw:
                             return None
-                        eix = TILE_SIZE
-                    if eiy > TILE_SIZE:
-                        if eiy - l.h > TILE_SIZE:
+                        eix = tw
+                    if eiy > th:
+                        if eiy - l.h > th:
                             return None
-                        eiy = TILE_SIZE
+                        eiy = th
 
                     return BoundingBox(six, siy, eix - six, eiy - siy)
 
@@ -123,20 +131,29 @@ def crop(fn, logos):
                     li.append(p)
 
             c = (255, 0, 0)
-            nim = im[fy:fy+TILE_SIZE, fx:fx+TILE_SIZE]
-            img_name =f"{img_out}/{basename}-x{x}y{y}.png"
+
+            print(start, end)
+            nim = im[start[1]:end[1], start[0]:end[0]]
+            img_name =f"{img_out}/{basename}-x{x}y{y}.jpg"
             txt_name =f"{txt_out}/{basename}-x{x}y{y}.txt"
 
             cv2.imwrite(img_name, nim)
             if len(li):
                 with open(txt_name, 'w') as f:
                     for p in li:
+                        print(p)
+                        im = cv2.rectangle(im,
+                                           floor_point(p.x, p.y),
+                                           floor_point(p.x + p.w, p.y + p.h),
+                                           c,
+                                           5)
                         cx = p.w/2 + p.x
                         cy = p.h/2 + p.y
 
                         a = f"{basename} {cx/TILE_SIZE} {cy/TILE_SIZE} {p.w/TILE_SIZE} {p.h/TILE_SIZE}"
                         f.write(a)
                         print(a)
+    cv2.imwrite(f'{basename}.debug.png', im)
 
 if __name__ == '__main__':
     with os.scandir('./data/') as it:
