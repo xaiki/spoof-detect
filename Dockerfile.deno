@@ -2,7 +2,7 @@ FROM docker.io/denoland/deno
 MAINTAINER Niv Sardi <x@filtra.me>
 WORKDIR /app
 
-COPY src-deno ./src
+COPY src ./src
 RUN deno cache ./src/index.ts
 
-CMD deno ./src/index.ts
+CMD deno --allow-env --allow-read --allow-write --allow-net ./src/index.ts
