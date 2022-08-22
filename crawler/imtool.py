@@ -119,8 +119,9 @@ def crop(fn, logos):
 
             c = (255, 0, 0)
             nim = im[fy:fy+TILE_SIZE, fx:fx+TILE_SIZE]
-            img_name =f"{img_out}/{basename}.{x}.{y}.png"
-            txt_name =f"{txt_out}/{basename}.{x}.{y}.txt"
+            img_name =f"{img_out}/{basename}-x{x}y{y}.png"
+            txt_name =f"{txt_out}/{basename}-x{x}y{y}.txt"
+
             cv2.imwrite(img_name, nim)
             if len(li):
                 with open(txt_name, 'w') as f:
@@ -133,7 +134,13 @@ def crop(fn, logos):
                         print(a)
 
 if __name__ == '__main__':
-    boxes = read_bounding_boxes("./data/debug.full.txt")
-    print(boxes)
-    crop("./data/debug.full.png", boxes)
+    with os.scandir('./data/') as it:
+        for e in it:
+            if e.name.endswith('.txt') and e.is_file():
+                print(e.name)
+                try:
+                    boxes = read_bounding_boxes(e.path)
+                    crop(e.path.replace('.txt', '.png'), boxes)
+                except Exception as err:
+                    print(err)
 
