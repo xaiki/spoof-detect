@@ -109,7 +109,7 @@ def crop(fn, logos):
                             return None
                         eiy = TILE_SIZE
 
-                    return (six, siy), (eix, eiy)
+                    return BoundingBox(six, siy, eix - six, eiy - siy)
 
                 p = intersect()
                 if p:
@@ -122,12 +122,10 @@ def crop(fn, logos):
             if len(li):
                 with open(f"{name}.txt", 'w') as f:
                     for p in li:
-                        cw = p[1][0] - p[0][0]
-                        ch = p[1][1] - p[0][1]
-                        cx = cw/2 + p[0][0]
-                        cy = ch/2 + p[0][1]
+                        cx = cw/2 + p.x
+                        cy = ch/2 + p.y
 
-                        a = f"{basename} {cx/TILE_SIZE} {cy/TILE_SIZE} {cw/TILE_SIZE} {ch/TILE_SIZE}"
+                        a = f"{basename} {cx/TILE_SIZE} {cy/TILE_SIZE} {p.w/TILE_SIZE} {p.h/TILE_SIZE}"
                         f.write(a)
                         print(a)
 
