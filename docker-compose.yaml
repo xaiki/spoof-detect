@@ -45,6 +45,6 @@ services:
   browserless:
      image: docker.io/zenika/alpine-chrome
      entrypoint: ["sh", "-c", "while true; do chromium-browser --headless --use-gl=swiftshader --disable-software-rasterizer --disable-dev-shm-usage --no-sandbox --remote-debugging-address=0.0.0.0 --remote-debugging-port=3000; sleep 2; done"]
-     port:
+     ports:
        - "3000:3000"
 
