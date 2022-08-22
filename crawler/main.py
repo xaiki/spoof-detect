@@ -1,6 +1,8 @@
 import csv
 import pathlib
 import requests
+import shutil
+
 from bs4 import BeautifulSoup
 from progress.bar import ChargingBar
 
@@ -9,12 +11,13 @@ from common import selectors
 
 pathlib.Path(f"{Entity._DATA_PATH}/logos").mkdir(parents=True, exist_ok=True)
 
+DATA_FILE = './data/entidades.csv'
 URL = "http://www.bcra.gob.ar/SistemasFinancierosYdePagos/Entidades_financieras.asp"
 page = requests.get(URL)
 soup = BeautifulSoup(page.content, "html.parser")
 
 options = soup.find(class_="form-control").find_all('option')
-with open('./data/entidades.csv', 'w', newline='') as csvfile:
+with open(f"{DATA_FILE}.tmp", 'w', newline='') as csvfile:
     writer = csv.writer(csvfile)
     writer.writerow(Entity.row_names())
 
@@ -49,3 +52,6 @@ with open('./data/entidades.csv', 'w', newline='') as csvfile:
         writer.writerow(e.to_row())
         bar.next()
     bar.finish()
+
+shutil.move(f"{DATA_FILE}.tmp", DATA_FILE)
+print("scrape finished")
