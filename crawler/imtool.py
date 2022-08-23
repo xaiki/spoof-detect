@@ -76,9 +76,10 @@ def crop(fn, logos):
     im = cv2.imread(fn)
 
     (h, w, c) = im.shape
+    (tw, th) = (min(w, TILE_SIZE), min(h, TILE_SIZE))
     (tx, ty)= (
-        math.ceil(w/(TILE_SIZE*TILE_OVERLAP)),
-        math.ceil(h/(TILE_SIZE*TILE_OVERLAP))
+        math.ceil(w/(tw*TILE_OVERLAP)),
+        math.ceil(h/(th*TILE_OVERLAP))
     )
 
     print('shape', basename, tx, ty, w, h, logos)
@@ -86,18 +87,21 @@ def crop(fn, logos):
         for y in range(ty):
             color = (0,x*(255/tx),y*(255/ty))
 
-            (tw, th) = (min(w, TILE_SIZE), min(h, TILE_SIZE))
-            f = BoundingBox(
-                (w - tw)*x/(tx),
-                (h - th)*y/(ty),
-                tw,
-                th
-            )
+
+            if tx < 2:
+                xs = 0
+            else:
+                xs = (w - tw)*x/(tx - 1)
+            if ty < 2:
+                ys = 0
+            else:
+                ys = (h - th)*y/(ty - 1)
+
+            f = BoundingBox(xs, ys, tw, th)
 
             start = floor_point(f.x, f.y)
             end = floor_point(f.x + f.w, f.y + f.h)
 
-            print(x, y, start, end, logos)
             im = cv2.rectangle(im, start, end, color, 10)
             li = []
             for l in logos:
@@ -144,9 +148,9 @@ def crop(fn, logos):
                 with open(txt_name, 'w') as f:
                     for p in li:
                         print(p)
-                        im = cv2.rectangle(im,
-                                           floor_point(p.x, p.y),
-                                           floor_point(p.x + p.w, p.y + p.h),
+                        dim = cv2.rectangle(nim,
+                                           floor_point(p.x - p.w/2, p.y - p.h/2),
+                                           floor_point(p.x + p.w/2, p.y + p.h/2),
                                            c,
                                            5)
                         cx = p.w/2 + p.x
@@ -155,6 +159,8 @@ def crop(fn, logos):
                         a = f"{basename} {cx/TILE_SIZE} {cy/TILE_SIZE} {p.w/TILE_SIZE} {p.h/TILE_SIZE}"
                         f.write(a)
                         print(a)
+                        cv2.imwrite(f'{debug_out}/{basename}{x}{y}.debug.png', dim)
+
     cv2.imwrite(f'{debug_out}/{basename}.debug.png', im)
 
 if __name__ == '__main__':
