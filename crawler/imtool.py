@@ -9,7 +9,7 @@ from typing import NamedTuple
 from entity import Entity
 
 TILE_SIZE = 800
-TILE_OVERLAP = 0.2
+TILE_OVERLAP = 0.8
 
 class BoundingBox(NamedTuple):
     x: float = 0.0

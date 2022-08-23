@@ -22,6 +22,21 @@ queue.addEventListener("idle", async () => {
   console.log("all done")
 })
 
+async function get_logos(page, selector): {}[] {
+  const logos = await page.$$(selector) || [];
+  for (const i in logos) {
+    const bb = await page.evaluate(e => {
+      const { x, y, width, height } = e.getBoundingClientRect();
+      return {
+        x, y, width, height, top: window.screen.top, left: window.screen.left
+      }
+    }, logos[i])
+    logos[i].box = bb;
+  }
+  return logos;
+}
+
+
 function process(o: { url: string, bco: string, name: string }): Promise<void> {
   const promises: Promise<void>[] = [];
 
@@ -30,11 +45,22 @@ function process(o: { url: string, bco: string, name: string }): Promise<void> {
     promises.push(new Promise<void>((accept, _reject) => {
       page.once('load', async () => {
         try {
-          const logos = await page.$$(selectors.logo);
+          const imgs = await get_logos(page, selectors.img_logo);
+          const ids = await get_logos(page, selectors.id_logo);
+          const cls = await get_logos(page, selectors.class_logo);
+          const logos = [
+            ...imgs, ...ids, ...cls
+          ]
+
           let annotations = '';
           for (const i in logos) {
-            const bb = await logos[i].boundingBox();
-            if (!bb) continue;
+            const bb = logos[i].box
+            if (!bb
+              || (bb.width < 10)
+              || (bb.height < 10)
+              || (bb.x + bb.width < 0)
+              || (bb.y + bb.height < 0)) continue;
+            console.log('got bb', o.bco, bb)
 
             try {
               await logos[i].screenshot({ path: `./data/logos/${o.bco}.logo${i}.png` })

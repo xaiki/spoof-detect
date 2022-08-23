@@ -27,7 +27,9 @@ def sc_entity(e: Entity):
     driver.save_screenshot(f"{e.DATA_PATH}/{e.bco}.png")
     driver.save_full_page_screenshot(f"{e.DATA_PATH}/{e.bco}.full.png")
 
-    logos = driver.find_elements(By.CSS_SELECTOR, selectors.logo)
+    logos = driver.find_elements(By.CSS_SELECTOR, selectors.img_logo) or []
+    logos.extend(driver.find_elements(By.CSS_SELECTOR, selectors.id_logo) or [])
+    logos.extend(driver.find_elements(By.CSS_SELECTOR, selectors.cls_logo) or [])
     with open(f"{e.DATA_PATH}/{e.bco}.full.txt", 'w') as f:
         for i in logos:
             f.write(f"{e.bco} {coord_to_point(i.rect)}\n")
