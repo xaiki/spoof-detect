@@ -23,8 +23,8 @@ services:
     # command: "sh -c 'while echo deno; do sleep 3h; done'" # debug
     command: "deno run --allow-net --allow-env --allow-read --allow-write src/index.ts"
     volumes:
-      # - "./src:/app/src:z" # for debugging
-      - "./data:/app/data:z"
+       - "./deno:/app/src:z" # for debugging
+       - "./data:/app/data:z"
     #restart: unless-stopped:600
     deploy:
       restart_policy:
@@ -39,7 +39,7 @@ services:
     depends_on:
       - "puppet"
     volumes:
-      # - "./crawler:/app/src:z" # for debugging
+      - "./python:/app/src:z" # for debugging
       - "./data:/app/data:z"
 
   browserless:
