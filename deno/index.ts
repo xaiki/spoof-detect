@@ -37,7 +37,7 @@ async function get_logos(page, selector): {}[] {
 }
 
 
-function process(o: { url: string, bco: string, name: string }): Promise<void> {
+function process(o: { id: int, url: string, bco: string, name: string }): Promise<void> {
   const promises: Promise<void>[] = [];
 
   return puppet.run(async page => {
@@ -65,7 +65,7 @@ function process(o: { url: string, bco: string, name: string }): Promise<void> {
             try {
               await logos[i].screenshot({ path: `./data/logos/${o.bco}.logo${i}.png` })
               annotations +=
-                `${o.bco} ${bb.x + bb.width / 2} ${bb.y + bb.height / 2} ${bb.width} ${bb.height}\n`
+                `${o.id} ${bb.x + bb.width / 2} ${bb.y + bb.height / 2} ${bb.width} ${bb.height}\n`
             } catch (e) {
               console.error(`couldn't screenshot logo: ${e}`);
             }
