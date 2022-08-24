@@ -64,7 +64,7 @@ def cut_logo(im, l):
     (x, y, w, h) = floor_logo(l)
     return im[x:w, y:h]
 
-def crop(fn, logos):
+def crop(id, fn, logos):
     basename = os.path.basename(fn).replace('.png', '')
     img_out = f"./data/squares/images"
     txt_out = f"./data/squares/labels"
@@ -156,7 +156,7 @@ def crop(fn, logos):
                         cx = p.w/2 + p.x
                         cy = p.h/2 + p.y
 
-                        a = f"{basename} {cx/TILE_SIZE} {cy/TILE_SIZE} {p.w/TILE_SIZE} {p.h/TILE_SIZE}"
+                        a = f"{int(id)} {cx/TILE_SIZE} {cy/TILE_SIZE} {p.w/TILE_SIZE} {p.h/TILE_SIZE}\n"
                         f.write(a)
                         print(a)
                         cv2.imwrite(f'{debug_out}/{basename}{x}{y}.debug.png', dim)
@@ -164,13 +164,15 @@ def crop(fn, logos):
     cv2.imwrite(f'{debug_out}/{basename}.debug.png', im)
 
 if __name__ == '__main__':
+    i = 0
     with os.scandir('./data/') as it:
         for e in it:
             if e.name.endswith('.txt') and e.is_file():
                 print(e.name)
                 try:
-                    boxes = read_bounding_boxes(e.path)
-                    crop(e.path.replace('.txt', '.png'), boxes)
+                    i+=1
+                    bco, boxes = read_bounding_boxes(e.path)
+                    crop(i, e.path.replace('.txt', '.png'), boxes)
                 except Exception as err:
                     print(err)
 
