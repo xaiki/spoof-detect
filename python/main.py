@@ -8,34 +8,32 @@ from progress.bar import ChargingBar
 
 from entity import Entity
 from common import selectors
+from common import defaults
 
-pathlib.Path(f"{Entity._DATA_PATH}/logos").mkdir(parents=True, exist_ok=True)
+pathlib.Path(f'{defaults.DATA_PATH}/logos').mkdir(parents=True, exist_ok=True)
 
 DATA_FILE = './data/entidades.csv'
-URL = "http://www.bcra.gob.ar/SistemasFinancierosYdePagos/Entidades_financieras.asp"
+URL = 'http://www.bcra.gob.ar/SistemasFinancierosYdePagos/Entidades_financieras.asp'
 page = requests.get(URL)
-soup = BeautifulSoup(page.content, "html.parser")
+soup = BeautifulSoup(page.content, 'html.parser')
 
-options = soup.find(class_="form-control").find_all('option')
-with open(f"{DATA_FILE}.tmp", 'w', newline='') as csvfile:
+options = soup.find(class_='form-control').find_all('option')
+with open(f'{DATA_FILE}.tmp', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile)
     writer.writerow(Entity.row_names())
 
+    i = 0
     bar = ChargingBar('Processing', max=len(options))
     for o in options[1:]:
-        e = Entity(
-            name = o.text,
-            bco = o.attrs['value']
-        )
-        page = requests.post(URL, data={'bco': e.bco})
-        soup = BeautifulSoup(page.content, "html.parser")
+        (name, bco)= (o.text, o.attrs['value'])
+        page = requests.post(URL, data={'bco': bco})
+        soup = BeautifulSoup(page.content, 'html.parser')
         try:
             img = soup.select_one(selectors.logosbancos).attrs['src']
-            img = img.replace("../", "https://www.bcra.gob.ar/")
+            img = img.replace('../', 'https://www.bcra.gob.ar/')
         except AttributeError as err:
-            print('img', e.name, err)
+            print('img', name, err)
             img = None
-        e.logo = img
 
         a = soup.select_one(selectors.entity_http)
         try:
@@ -48,10 +46,11 @@ with open(f"{DATA_FILE}.tmp", 'w', newline='') as csvfile:
             except TypeError:
                 print('ERROR', a)
 
-        e.url = a
+        e = Entity(name, id=i, bco=bco, logo=img, url=a)
         writer.writerow(e.to_row())
+        i+=1
         bar.next()
     bar.finish()
 
-shutil.move(f"{DATA_FILE}.tmp", DATA_FILE)
-print("scrape finished")
+shutil.move(f'{DATA_FILE}.tmp', DATA_FILE)
+print('scrape finished')

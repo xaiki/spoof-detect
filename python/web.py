@@ -1,22 +1,25 @@
 #!/usr/bin/env python3
 import ssl
+import shutil
+import requests
 from bs4 import BeautifulSoup
 
 from entity import Entity
-from common import selectors
+from common import selectors, defaults
+
 def get_page(e: Entity):
     try:
         page = requests.get(e.url)
     except Exception:
-        e.url = e.url.replace('http', 'https')
-        page = requests.get(e.url)
+        url = e.url.replace('http', 'https')
+        page = requests.get(url)
     return page
 
 def get_cert(e: Entity):
     ssl_url = e.url.split("/")[2]
     try:
         cert = ssl.get_server_certificate((ssl_url, 443), ca_certs=None)
-        fn = f"{e.DATA_PATH}/{e.bco}.cert"
+        fn = f"{defaults.DATA_PATH}/{e.bco}.cert"
         with open(fn, 'w') as f:
             f.write(cert)
     except Exception as err:
@@ -24,23 +27,27 @@ def get_cert(e: Entity):
             f.write(str(err))
     return fn
 
+def get_img_logo(src: string):
+        ext = src.split('.')[-1].split('/')[-1]
+        res = requests.get(src, stream=True)
+
+        fn = f"{defaults.DATA_PATH}/logos/{e.bco}.{i}.{ext}"
+        with open(fn, "wb") as f:
+            shutil.copyfileobj(res.raw, f)
+        return fn
+
 def get_logos(e: Entity, page):
     soup = BeautifulSoup(page.content, "html.parser")
-    logos = soup.select(selectors.logo)
+    logos = soup.select(selectors.img_logo)
+    logos.extend(soup.select(selectors.id_logo))
+    logos.extend(soup.select(selectors.cls_logo))
 
     i = 0
     lfn = []
     for l in logos:
-        src = l.attrs['src']
-        ext = src.split('.')[-1].split('/')[-1]
-        try:
-            res = requests.get(src, stream=True)
-        except Exception:
-            res = requests.get(f"{e.url}/{src}")
-
-        fn = f"{e.DATA_PATH}/logos/{e.bco}.{i}.{ext}"
-        with open(fn, "wb") as f:
-            shutil.copyfileobj(res.raw, f)
-        lfn.append(fn)
+        if 'src' in l.attrs:
+            src = l.attrs['src']
+            if not src.startswith('http'): src = e.url + src
+            lfn.append(get_img_logo(src))
         i+=1
     return lfn

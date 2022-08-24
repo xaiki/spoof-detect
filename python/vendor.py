@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 import pathlib
-
-import shutil
 import csv
 import concurrent.futures
 import requests
@@ -9,6 +7,7 @@ import requests
 from progress.bar import ChargingBar
 
 from entity import Entity
+from common import defaults
 import screenshot
 import web
 
@@ -31,6 +30,7 @@ def from_csv(fn):
                     (cert, logos) = f.result()
                 except Exception as exc:
                     print('%r generated an exception: %s' % (url, exc))
+                    raise
                 else:
                     print(cert, logos)
                 bar.next()
@@ -40,6 +40,6 @@ def from_csv(fn):
 #exit()
 
 if __name__ == '__main__':
-    #pathlib.Path(e.DATA_PATH).mkdir(parents=True, exist_ok=True)
-    pathlib.Path(f"{Entity._DATA_PATH}/logos").mkdir(parents=True, exist_ok=True)
-    from_csv(f"{Entity._DATA_PATH}/entidades.csv")
+    #pathlib.Path(defaults.DATA_PATH).mkdir(parents=True, exist_ok=True)
+    pathlib.Path(f"{defaults.DATA_PATH}/logos").mkdir(parents=True, exist_ok=True)
+    from_csv(f"{defaults.DATA_PATH}/entidades.csv")
