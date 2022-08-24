@@ -1,20 +1,48 @@
 #+TITLE: Spoof Detect
 
-* yolo
+Detect spoofed website by detecting logos from bank and financial entities in
+pages with =ssl certificates= that do not match.
+
+The process is pretty simple:
+ - scrape gvt websites to get a list of entities (for argentina it's BCRA)
+ - get logos, names and url
+ - navigate the url, extract the ssl certificate and look for =img= and tags
+   with =id= or =class= logo (needs more heuristics) to make a db of logos
+ - screenshot the page and slice it into tiles generating YOLO annotations for
+   the detected logos
+ - augment data using the logos database and the logoless tiles as background images
+ - train yolov5s
+ - feed everything to a web extension that will detect the logos in any page
+   and show a warning if the =SSL certificate= mismatches the collected one.
+
+* running
+#+begin_src sh
+  # build the training dataset
+  docker-compose up --build --remove-orphans
+
+  # run the training on your machine or collab
+  # https://colab.research.google.com/drive/10R7uwVJJ1R1k6oTjbkkhxPDka7COK-WE
+  git clone https://github.com/ultralytics/yolov5  # clone repo
+  pip install -U -r yolov5/requirements.txt  # install dependencies
+  python3 yolov5/train.py --img 416 --batch 80 --epochs 100 --data ./ia/data.yaml  --cfg ./ia/yolov5s.yaml --weights ''
+
+#+end_src
+
+* research
+** yolo
 https://github.com/ModelDepot/tfjs-yolo-tiny
 https://github.com/Hyuto/yolov5-tfjs
 
 ** augmentation
 https://github.com/srp-31/Data-Augmentation-for-Object-Detection-YOLO-
 
-
-* proveedores
+** proveedores
 http://www.bcra.gov.ar/SistemasFinancierosYdePagos/Proveedores-servicios-de-pago-ofrecen-cuentas-de-pago.asp
 http://www.bcra.gov.ar/SistemasFinancierosYdePagos/Proveedores-servicios-de-billeteras-digitales-Interoperables.asp
 
 http://www.bcra.gob.ar/SistemasFinancierosYdePagos/Entidades_financieras.asp
 
-* certs in browsers
+** certs in browsers
 https://stackoverflow.com/questions/6566545/is-there-any-way-to-access-certificate-information-from-a-chrome-extension
 https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest#accessing_security_information
 https://chromium-review.googlesource.com/c/chromium/src/+/644858
