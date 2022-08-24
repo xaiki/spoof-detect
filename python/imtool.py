@@ -8,7 +8,7 @@ from typing import NamedTuple
 
 from entity import Entity
 
-TILE_SIZE = 800
+TILE_SIZE = 416
 TILE_OVERLAP = 0.8
 
 class BoundingBox(NamedTuple):
