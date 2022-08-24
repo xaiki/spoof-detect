@@ -111,7 +111,7 @@ def crop(id, fn, logos):
                     eix = six + l.w
                     eiy = siy + l.h
 
-                    print('intersect', (six, siy), (eix, eiy), f, l)
+                    #print('intersect', (six, siy), (eix, eiy), f, l)
 
                     if six < 0:
                         if six + l.w < 0:
@@ -138,7 +138,6 @@ def crop(id, fn, logos):
 
             c = (255, 0, 0)
 
-            print(start, end)
             nim = im[start[1]:end[1], start[0]:end[0]]
             img_name =f"{img_out}/{basename}-x{x}y{y}.jpg"
             txt_name =f"{txt_out}/{basename}-x{x}y{y}.txt"
@@ -147,7 +146,6 @@ def crop(id, fn, logos):
             if len(li):
                 with open(txt_name, 'w') as f:
                     for p in li:
-                        print(p)
                         dim = cv2.rectangle(nim,
                                            floor_point(p.x - p.w/2, p.y - p.h/2),
                                            floor_point(p.x + p.w/2, p.y + p.h/2),
