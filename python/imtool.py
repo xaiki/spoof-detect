@@ -41,12 +41,12 @@ def read_bounding_boxes(filename):
     with open(filename, 'r') as f:
         lines = f.readlines()
         for l in lines:
-            (x,y,w,h) = [float(i) for i in l.split(' ')[1:]]
+            (bco, x,y,w,h) = [float(i) for i in l.split(' ')]
             if x < 0 or y < 0 or w < 10 or h < 10:
                 print(f"dropping logo, it has inconsistent size: {w}x{h}+{x}x{y}")
                 continue
             boxes.append(BoundingBox(x,y,w,h))
-    return boxes
+    return bco, boxes
 
 def floor_point(x, y):
     return (math.floor(x), math.floor(y))
