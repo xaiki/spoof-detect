@@ -9,7 +9,7 @@ from selenium.webdriver.common.by import By
 
 from common import selectors
 from entity import Entity
-from common import defaults
+from common import defaults,mkdir
 
 options = webdriver.FirefoxOptions()
 options.add_argument("--headless")
@@ -22,18 +22,23 @@ def coord_to_point(c):
 
 driver = webdriver.Firefox(options=options)
 def sc_entity(e: Entity):
-    print(e)
+    print(f'screenshoting: {e}')
+    mkdir.make_dirs([
+            defaults.IMAGES_PATH,
+            defaults.LABELS_PATH,
+    ])
+
     driver.implicitly_wait(10)
     driver.get(e.url)
-    driver.save_screenshot(f"{defaults.DATA_PATH}/{e.bco}.png")
-    driver.save_full_page_screenshot(f"{defaults.DATA_PATH}/{e.bco}.full.png")
+    #driver.save_screenshot(f"{defaults.DATA_PATH}/{e.bco}.png")
+    driver.save_full_page_screenshot(f"{defaults.IMAGES_PATH}/{e.bco}.full.png")
 
     logos = driver.find_elements(By.CSS_SELECTOR, selectors.img_logo) or []
     logos.extend(driver.find_elements(By.CSS_SELECTOR, selectors.id_logo) or [])
     logos.extend(driver.find_elements(By.CSS_SELECTOR, selectors.cls_logo) or [])
-    with open(f"{defaults.DATA_PATH}/{e.bco}.full.txt", 'w') as f:
+    with open(f"{defaults.LABELS_PATH}/{e.bco}.full.txt", 'w') as f:
         for i in logos:
-            f.write(f"{e.bco} {coord_to_point(i.rect)}\n")
+            f.write(f"{e.id} {coord_to_point(i.rect)}\n")
 
 if __name__ == '__main__':
     sc_entity(Entity.from_dict({'url': 'http://www.bbva.com.ar', 'bco': 'debug'}))

@@ -1,5 +1,4 @@
 import csv
-import pathlib
 import requests
 import shutil
 
@@ -7,18 +6,16 @@ from bs4 import BeautifulSoup
 from progress.bar import ChargingBar
 
 from entity import Entity
-from common import selectors
-from common import defaults
+from common import selectors, defaults, mkdir
 
-pathlib.Path(f'{defaults.DATA_PATH}/logos').mkdir(parents=True, exist_ok=True)
-
-DATA_FILE = './data/entidades.csv'
 URL = 'http://www.bcra.gob.ar/SistemasFinancierosYdePagos/Entidades_financieras.asp'
 page = requests.get(URL)
 soup = BeautifulSoup(page.content, 'html.parser')
 
 options = soup.find(class_='form-control').find_all('option')
-with open(f'{DATA_FILE}.tmp', 'w', newline='') as csvfile:
+mkdir.make_dirs([defaults.DATA_PATH])
+
+with open(f'{defaults.MAIN_CSV_PATH}.tmp', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile)
     writer.writerow(Entity.row_names())
 
@@ -46,11 +43,11 @@ with open(f'{DATA_FILE}.tmp', 'w', newline='') as csvfile:
             except TypeError:
                 print('ERROR', a)
 
-        e = Entity(name, id=i, bco=bco, logo=img, url=a)
+        e = Entity(name, id=i, bco=bco, logo=str(img), url=str(a))
         writer.writerow(e.to_row())
         i+=1
         bar.next()
     bar.finish()
 
-shutil.move(f'{DATA_FILE}.tmp', DATA_FILE)
+shutil.move(f'{defaults.MAIN_CSV_PATH}.tmp', defaults.MAIN_CSV_PATH)
 print('scrape finished')

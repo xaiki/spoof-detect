@@ -3,10 +3,10 @@
 import os
 import math
 import cv2
-import pathlib
 from typing import NamedTuple
 
 from entity import Entity
+from common import mkdir
 
 TILE_SIZE = 416
 TILE_OVERLAP = 0.8
@@ -69,9 +69,7 @@ def crop(id, fn, logos):
     img_out = f"./data/squares/images"
     txt_out = f"./data/squares/labels"
     debug_out = f"./data/debug"
-    pathlib.Path(debug_out).mkdir(parents=True, exist_ok=True)
-    pathlib.Path(img_out).mkdir(parents=True, exist_ok=True)
-    pathlib.Path(txt_out).mkdir(parents=True, exist_ok=True)
+    mkdir.make_dirs[debug_out, img_out, txt_out]
 
     im = cv2.imread(fn)
     rim = cv2.imread(fn)

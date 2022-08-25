@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import pathlib
 import csv
 import concurrent.futures
 import requests
@@ -7,7 +6,7 @@ import requests
 from progress.bar import ChargingBar
 
 from entity import Entity
-from common import defaults
+from common import defaults,mkdir
 import screenshot
 import web
 
@@ -40,6 +39,4 @@ def from_csv(fn):
 #exit()
 
 if __name__ == '__main__':
-    #pathlib.Path(defaults.DATA_PATH).mkdir(parents=True, exist_ok=True)
-    pathlib.Path(f"{defaults.DATA_PATH}/logos").mkdir(parents=True, exist_ok=True)
-    from_csv(f"{defaults.DATA_PATH}/entidades.csv")
+    from_csv(defaults.MAIN_CSV_PATH)

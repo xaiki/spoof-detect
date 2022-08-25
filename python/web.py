@@ -5,7 +5,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from entity import Entity
-from common import selectors, defaults
+from common import selectors, defaults, mkdir
 
 def get_page(e: Entity):
     try:
@@ -17,9 +17,10 @@ def get_page(e: Entity):
 
 def get_cert(e: Entity):
     ssl_url = e.url.split("/")[2]
+    mkdir.make_dirs(defaults.CERTS_PATH)
     try:
         cert = ssl.get_server_certificate((ssl_url, 443), ca_certs=None)
-        fn = f"{defaults.DATA_PATH}/{e.bco}.cert"
+        fn = f"{defaults.CERTS_PATH}/{e.bco}.cert"
         with open(fn, 'w') as f:
             f.write(cert)
     except Exception as err:
@@ -39,6 +40,8 @@ def get_logos(e: Entity, page):
     logos.extend(soup.select(selectors.id_logo))
     logos.extend(soup.select(selectors.cls_logo))
 
+    mkdir.make_dirs(defaults.LOGOS_DATA_PATH)
+
     i = 0
     lfn = []
     for l in logos:
@@ -46,7 +49,7 @@ def get_logos(e: Entity, page):
             src = l.attrs['src']
             ext = src.split('.')[-1].split('/')[-1]
             if not src.startswith('http'): src = e.url + src
-            fn = f"{defaults.DATA_PATH}/logos/{e.bco}.{i}.{ext}"
+            fn = f"{defaults.LOGOS_DATA_PATH}/{e.bco}.{i}.{ext}"
             lfn.append(get_img_logo(src, fn))
         i+=1
     return lfn
