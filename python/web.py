@@ -27,11 +27,8 @@ def get_cert(e: Entity):
             f.write(str(err))
     return fn
 
-def get_img_logo(src: string):
-        ext = src.split('.')[-1].split('/')[-1]
+def get_img_logo(src: str, fn):
         res = requests.get(src, stream=True)
-
-        fn = f"{defaults.DATA_PATH}/logos/{e.bco}.{i}.{ext}"
         with open(fn, "wb") as f:
             shutil.copyfileobj(res.raw, f)
         return fn
@@ -47,7 +44,9 @@ def get_logos(e: Entity, page):
     for l in logos:
         if 'src' in l.attrs:
             src = l.attrs['src']
+            ext = src.split('.')[-1].split('/')[-1]
             if not src.startswith('http'): src = e.url + src
-            lfn.append(get_img_logo(src))
+            fn = f"{defaults.DATA_PATH}/logos/{e.bco}.{i}.{ext}"
+            lfn.append(get_img_logo(src, fn))
         i+=1
     return lfn

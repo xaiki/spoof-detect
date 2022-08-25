@@ -12,8 +12,8 @@ class Entity(NamedTuple):
     name: str
     id: int = 0
     bco: str = "debug"
-    url: str = None
-    logo: str = None
+    url: str = ''
+    logo: str = ''
 
     def __repr__(self):
         return f"""
