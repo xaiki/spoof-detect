@@ -74,6 +74,7 @@ def crop(id, fn, logos):
     pathlib.Path(txt_out).mkdir(parents=True, exist_ok=True)
 
     im = cv2.imread(fn)
+    rim = cv2.imread(fn)
 
     (h, w, c) = im.shape
     (tw, th) = (min(w, TILE_SIZE), min(h, TILE_SIZE))
@@ -102,7 +103,7 @@ def crop(id, fn, logos):
             start = floor_point(f.x, f.y)
             end = floor_point(f.x + f.w, f.y + f.h)
 
-            im = cv2.rectangle(im, start, end, color, 10)
+            rim = cv2.rectangle(rim, start, end, color, 10)
             li = []
             for l in logos:
                 def intersect():
@@ -139,6 +140,7 @@ def crop(id, fn, logos):
             c = (255, 0, 0)
 
             nim = im[start[1]:end[1], start[0]:end[0]]
+            rnim = rim[start[1]:end[1], start[0]:end[0]]
             img_name =f"{img_out}/{basename}-x{x}y{y}.jpg"
             txt_name =f"{txt_out}/{basename}-x{x}y{y}.txt"
 
@@ -146,13 +148,14 @@ def crop(id, fn, logos):
             if len(li):
                 with open(txt_name, 'w') as f:
                     for p in li:
-                        dim = cv2.rectangle(nim,
-                                           floor_point(p.x - p.w/2, p.y - p.h/2),
-                                           floor_point(p.x + p.w/2, p.y + p.h/2),
+                        cx = p.x
+                        cy = p.y
+
+                        dim = cv2.rectangle(rnim,
+                                           floor_point(cx - p.w/2, cy - p.h/2),
+                                           floor_point(cx + p.w/2, cy + p.h/2),
                                            c,
                                            5)
-                        cx = p.w/2 + p.x
-                        cy = p.h/2 + p.y
 
                         a = f"{int(id)} {cx/TILE_SIZE} {cy/TILE_SIZE} {p.w/TILE_SIZE} {p.h/TILE_SIZE}\n"
                         f.write(a)
