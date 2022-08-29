@@ -34,7 +34,13 @@ https://github.com/ModelDepot/tfjs-yolo-tiny
 https://github.com/Hyuto/yolov5-tfjs
 
 ** augmentation
-https://github.com/srp-31/Data-Augmentation-for-Object-Detection-YOLO-
+there were a lot of augmentation solutions out there, because it had better
+piplines and multicore support we went with:
+ - https://github.com/aleju/imgaug
+
+but leaving the other here for refs
+ - https://github.com/srp-31/Data-Augmentation-for-Object-Detection-YOLO-
+ - https://github.com/mdbloice/Augmentor
 
 ** proveedores
 http://www.bcra.gov.ar/SistemasFinancierosYdePagos/Proveedores-servicios-de-pago-ofrecen-cuentas-de-pago.asp

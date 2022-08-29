@@ -17,14 +17,14 @@ def get_page(e: Entity):
 
 def get_cert(e: Entity):
     ssl_url = e.url.split("/")[2]
-    mkdir.make_dirs(defaults.CERTS_PATH)
+    mkdir.make_dirs([defaults.CERTS_PATH])
     try:
         cert = ssl.get_server_certificate((ssl_url, 443), ca_certs=None)
         fn = f"{defaults.CERTS_PATH}/{e.bco}.cert"
         with open(fn, 'w') as f:
             f.write(cert)
     except Exception as err:
-        with open(f"{fn}.error.log", 'w+') as f:
+        with open(f"{defaults.DATA_PATH}/{e.bco}.error.log", 'w+') as f:
             f.write(str(err))
     return fn
 
@@ -40,7 +40,7 @@ def get_logos(e: Entity, page):
     logos.extend(soup.select(selectors.id_logo))
     logos.extend(soup.select(selectors.cls_logo))
 
-    mkdir.make_dirs(defaults.LOGOS_DATA_PATH)
+    mkdir.make_dirs([defaults.LOGOS_DATA_PATH])
 
     i = 0
     lfn = []
