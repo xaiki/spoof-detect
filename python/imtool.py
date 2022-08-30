@@ -89,12 +89,32 @@ def remove_white(img):
 
     return rect
 
+
 def mix(a, b, fx, fy):
+    alpha = b[:, :, 3]/255
+
+    return _mix_alpha(a, b, alpha, fx, fy)
+
+def mix_alpha(a, b, ba, fx, fy):
     (ah, aw, ac) = a.shape
     (bh, bw, bc) = b.shape
 
-    assert(aw > bw)
-    assert(ah > bh)
+    if (aw < bw or ah < bh):
+        f = 0.2*aw/bw
+        print(f'resizing, factor {f} to fit in {aw}x{ah}\n -- {bw}x{bh} => {floor_point(bw*f, bh*f)}')
+        r = cv2.resize(b, floor_point(bw*f, bh*f), interpolation = cv2.INTER_LINEAR)
+        rba = cv2.resize(ba, floor_point(bw*f, bh*f), interpolation = cv2.INTER_LINEAR)
+
+        return mix_alpha(a, r, rba, fx, fy)
+
+    assert bw > 10, f'b({bw}) too small'
+    assert bh > 10, f'b({bh}) too small'
+
+    return _mix_alpha(a, b, ba, fx, fy)
+
+def _mix_alpha(a, b, ba, fx, fy):
+    (ah, aw, ac) = a.shape
+    (bh, bw, bc) = b.shape
 
     x = math.floor(fx*(aw - bw))
     y = math.floor(fy*(ah - bh))
@@ -102,8 +122,7 @@ def mix(a, b, fx, fy):
     # handle transparency
     mat = a[y:y+bh,x:x+bw]
     cols = b[:, :, :3]
-    alpha = b[:, :, 3]/255
-    mask = np.dstack((alpha, alpha, alpha))
+    mask = np.dstack((ba, ba, ba))
 
     a[y:y+bh,x:x+bw] = mat * (1 - mask) + cols * mask
 

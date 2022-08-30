@@ -24,6 +24,8 @@ BATCH_SIZE = 16
 mkdir.make_dirs([defaults.AUGMENTED_IMAGES_PATH, defaults.AUGMENTED_LABELS_PATH])
 
 logo_images = []
+logo_alphas = []
+
 background_images = [d for d in os.scandir(defaults.IMAGES_PATH)]
 
 stats = {
@@ -57,14 +59,18 @@ for d in os.scandir(defaults.LOGOS_DATA_PATH):
 
         assert(w > 10)
         assert(h > 10)
+        (b, g, r, _) = cv2.split(img)
+        alpha = img[:, :, 3]/255
+        logo_images.append(cv2.merge([b, g, r]))
+        # XXX(xaiki): we pass alpha as a float32 heatmap, because imgaug is pretty strict about what data it will process
+        logo_alphas.append(np.dstack((alpha, alpha, alpha)).astype('float32'))
 
-        logo_images.append(img)
     except Exception as e:
         stats['failed'] += 1
         print(f'error loading: {d.path}: {e}')
 
 print(stats)
-batches = [UnnormalizedBatch(images=logo_images[i:i+BATCH_SIZE])
+batches = [UnnormalizedBatch(images=logo_images[i:i+BATCH_SIZE],heatmaps=logo_alphas[i:i+BATCH_SIZE])
            for i in range(math.floor(len(logo_images)/BATCH_SIZE))]
 
 # We use a single, very fast augmenter here to show that batches
@@ -91,12 +97,17 @@ with pipeline.pool(processes=-1, seed=1) as pool:
 
             anotations = []
             for k in range(math.floor(len(batch_aug.images_aug)/3)):
-                logo = batch_aug.images_aug[(j+k)%len(batch_aug.images_aug)]
+                logo_idx = (j+k*4)%len(batch_aug.images_aug)
+                logo = batch_aug.images_aug[logo_idx]
+
+                # XXX(xaiki): we get alpha from heatmap, but will only use one channel
+                # we could make mix_alpha into mix_mask and pass all 3 chanels
+                alpha = cv2.split(batch_aug.heatmaps_aug[logo_idx])
                 try:
-                    img, bb, (w, h) = imtool.mix(img, logo, random.random(), random.random())
+                    img, bb, (w, h) = imtool.mix_alpha(img, logo, alpha[0], random.random(), random.random())
                     anotations.append(f'0 {bb.x/w} {bb.y/h} {bb.w/w} {bb.h/h}')
-                except AssertionError:
-                    print(f'couldnt process {i}, {j}')
+                except AssertionError as e:
+                    print(f'couldnt process {i}, {j}: {e}')
 
             try:
                 cv2.imwrite(f'{defaults.AUGMENTED_IMAGES_PATH}/{basename}.png', img)
