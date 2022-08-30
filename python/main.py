@@ -5,6 +5,7 @@ import shutil
 from bs4 import BeautifulSoup
 from progress.bar import ChargingBar
 
+import web
 from entity import Entity
 from common import selectors, defaults, mkdir
 
@@ -28,6 +29,8 @@ with open(f'{defaults.MAIN_CSV_PATH}.tmp', 'w', newline='') as csvfile:
         try:
             img = soup.select_one(selectors.logosbancos).attrs['src']
             img = img.replace('../', 'https://www.bcra.gob.ar/')
+            fn = f"{defaults.LOGOS_DATA_PATH}/{bco}.0.png"
+            web.get_img_logo(img, fn)
         except AttributeError as err:
             print('img', name, err)
             img = None

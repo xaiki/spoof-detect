@@ -99,6 +99,7 @@ def mix(a, b, fx, fy):
     x = math.floor(fx*(aw - bw))
     y = math.floor(fy*(ah - bh))
 
+    # handle transparency
     mat = a[y:y+bh,x:x+bw]
     cols = b[:, :, :3]
     alpha = b[:, :, 3]/255
