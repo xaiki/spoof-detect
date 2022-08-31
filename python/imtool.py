@@ -81,7 +81,7 @@ def read_bounding_boxes(filename: str):
 def read_centroids(filename: str):
     return read_marker(filename, Centroid)
 
-def coord_dict_to_point(c):
+def coord_dict_to_point(c: dict):
     return coord_to_point(c['x'], c['y'], c['width'], c['heigh'])
 
 def coord_to_point(cx, cy, cw, ch):
@@ -89,10 +89,10 @@ def coord_to_point(cx, cy, cw, ch):
     y = math.floor(cy + ch/2)
     return f"{x} {y} {math.ceil(cw)} {math.ceil(ch)}"
 
-def floor_point(x, y):
+def floor_point(x: float, y: float):
     return (math.floor(x), math.floor(y))
 
-def cut_img(im, s, e):
+def cut_img(im, s: (float, float), e: (float, float)):
     x = s[0]
     y = s[1]
     w = e[0] - x
