@@ -3,7 +3,7 @@ from imgaug import augmenters as iaa
 
 # Sometimes(0.5, ...) applies the given augmenter in 50% of all cases,
 # e.g. Sometimes(0.5, GaussianBlur(0.3)) would blur roughly every second image.
-sometimes = lambda aug: iaa.Sometimes(0.1, aug)
+sometimes = lambda aug: iaa.Sometimes(0.2, aug)
 
 # Define our sequence of augmentation steps that will be applied to every image
 # All augmenters with per_channel=0.5 will sample one value _per image_
@@ -53,7 +53,7 @@ HUGE = sometimes(iaa.Sequential(
                     iaa.Dropout((0.01, 0.1), per_channel=0.5), # randomly remove up to 10% of the pixels
                     iaa.CoarseDropout((0.03, 0.15), size_percent=(0.02, 0.05), per_channel=0.2),
                 ]),
-                iaa.Invert(0.05, per_channel=True), # invert color channels
+                # iaa.Invert(0.05, per_channel=True), # invert color channels
                 iaa.Add((-10, 10), per_channel=0.5), # change brightness of images (by -10 to 10 of original value)
                 iaa.AddToHueAndSaturation((-20, 20)), # change hue and saturation
                 # either change the brightness of the whole image (sometimes
