@@ -183,12 +183,12 @@ def _mix_alpha(a, b, ba, fx, fy):
 
     return a, BoundingBox(x, y, bw, bh), (aw, ah)
 
-def crop(id, fn, logos):
+def crop(id, fn, logos: List[Centroid], out = './data/squares'):
     basename = os.path.basename(fn).replace('.png', '')
-    img_out = f"./data/squares/images"
-    txt_out = f"./data/squares/labels"
-    debug_out = f"./data/debug"
-    mkdir.make_dirs[debug_out, img_out, txt_out]
+    img_out = f"{out}/images"
+    txt_out = f"{out}/labels"
+    debug_out = f"{out}/debug"
+    mkdir.make_dirs([debug_out, img_out, txt_out])
 
     im = cv2.imread(fn)
     rim = cv2.imread(fn)
@@ -200,7 +200,7 @@ def crop(id, fn, logos):
         math.ceil(h/(th*TILE_OVERLAP))
     )
 
-    print('shape', basename, tx, ty, w, h, logos)
+    print('shape', basename, tx, ty, w, h)
     for x in range(tx):
         for y in range(ty):
             color = (0,x*(255/tx),y*(255/ty))
