@@ -19,10 +19,13 @@ class BoundingBox(NamedTuple):
     h: float = 0.0
 
     @classmethod
-    def from_centroid(cls, c):
-        x = math.floor(c.x + c.w/2)
-        y = math.floor(c.y + c.h/2)
-        self = cls(x=x, y=y, w=math.ceil(c.w), h=math.ceil(c.h))
+    def from_centroid(cls, c, shape = (1,1,1)):
+        (h, w, c) = shape
+        print(cls, c, shape)
+        self = cls(x=math.floor(w*(c.x - c.w/2))
+                   , y=math.floor(h*(c.y - c.h/2))
+                   , w=math.ceil(w*c.w)
+                   , h=math.ceil(h*c.h))
         return self
 
     @classmethod
@@ -30,26 +33,53 @@ class BoundingBox(NamedTuple):
         self = cls(x=d['x'], y=d['y'], w=d['width'], h=d['height'])
         return self
 
-class Centroid(BoundingBox):
-    @classmethod
-    def from_bounding_box(cls, b):
-        x = math.floor(b.x - c.w/2)
-        y = math.floor(b.y - c.h/2)
-        self = cls(x=x, y=y, w=math.ceil(c.w), h=math.ceil(c.h))
+    @property
+    def start(self):
+        return (self.x, self.y)
 
-def read_bounding_boxes(filename):
-    boxes = []
+    @property
+    def end(self):
+        return (self.x + self.w, self.y + self.h)
+
+    def to_centroid(self, shape = (1,1,1)):
+        (h, w, c) = shape
+        return Centroid(x=math.floor(self.x + self.w/2)/w
+                   , y=math.floor(self.y + self.h/2)/h
+                   , w=math.ceil(self.w)/w
+                   , h=math.ceil(self.h)/h)
+
+class Centroid(BoundingBox):
+    def to_bounding_box(self, shape = (1,1,1)):
+        (h, w, c) = shape
+
+        return BoundingBox(
+            x=math.floor(w*(self.x - self.w/2))
+            , y=math.floor(h*(self.y - self.h/2))
+            , w=math.ceil(w*self.w)
+            , h=math.ceil(h*self.h))
+
+    def to_anotation(self, id: int, shape=(1,1,1)):
+        (h, w, c) = shape
+
+        return f'{id} {self.x/w} {self.y/h} {self.w/w} {self.h/h}'
+
+def read_marker(filename: str, Type: type):
+    ret = []
     bco = None
     with open(filename, 'r') as f:
         lines = f.readlines()
         for l in lines:
             (b, x,y,w,h) = [float(i) for i in l.split(' ')]
             bco = b
-            if x < 0 or y < 0 or w < 10 or h < 10:
-                print(f"dropping logo, it has inconsistent size: {w}x{h}@{x}x{y}")
-                continue
-            boxes.append(BoundingBox(x,y,w,h))
-    return bco, boxes
+            print(b, x,y,w,h)
+            ret.append(Type(x,y,w,h))
+    return bco, ret
+
+def read_bounding_boxes(filename: str):
+    return read_marker(filename, BoundingBox)
+
+def read_centroids(filename: str):
+    return read_marker(filename, Centroid)
 
 def coord_dict_to_point(c):
     return coord_to_point(c['x'], c['y'], c['width'], c['heigh'])

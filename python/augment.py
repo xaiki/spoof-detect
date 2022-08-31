@@ -105,7 +105,8 @@ with pipeline.pool(processes=-1, seed=1) as pool:
                 alpha = cv2.split(batch_aug.heatmaps_aug[logo_idx])
                 try:
                     img, bb, (w, h) = imtool.mix_alpha(img, logo, alpha[0], random.random(), random.random())
-                    anotations.append(f'0 {bb.x/w} {bb.y/h} {bb.w/w} {bb.h/h}')
+                    c = bb.to_centroid((h, w, 1))
+                    anotations.append(c.to_anotation(0))
                 except AssertionError as e:
                     print(f'couldnt process {i}, {j}: {e}')
 
