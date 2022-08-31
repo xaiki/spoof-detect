@@ -129,11 +129,13 @@ def mix_alpha(a, b, ba, fx, fy):
     (ah, aw, ac) = a.shape
     (bh, bw, bc) = b.shape
 
-    if (aw < bw or ah < bh):
-        f = 0.2*aw/bw
-        print(f'resizing, factor {f} to fit in {aw}x{ah}\n -- {bw}x{bh} => {floor_point(bw*f, bh*f)}')
-        r = cv2.resize(b, floor_point(bw*f, bh*f), interpolation = cv2.INTER_LINEAR)
-        rba = cv2.resize(ba, floor_point(bw*f, bh*f), interpolation = cv2.INTER_LINEAR)
+    p = 0.2
+    if (aw*p < bw or ah*p < bh):
+        f = min(p*aw/bw, p*ah/bh)
+        nw, nh = floor_point(bw*f, bh*f)
+        print(f'resizing, factor {f} to fit in {aw}x{ah}\n -- {bw}x{bh} => {nw}x{nh}')
+        r = cv2.resize(b, (nw, nh), interpolation = cv2.INTER_LINEAR)
+        rba = cv2.resize(ba, (nw, nh), interpolation = cv2.INTER_LINEAR)
 
         return mix_alpha(a, r, rba, fx, fy)
 
