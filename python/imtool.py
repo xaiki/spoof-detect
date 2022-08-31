@@ -4,7 +4,7 @@ import os
 import math
 import cv2
 import numpy as np
-from typing import NamedTuple
+from typing import NamedTuple, Tuple
 
 from entity import Entity
 from common import mkdir
@@ -92,7 +92,7 @@ def coord_to_point(cx, cy, cw, ch):
 def floor_point(x: float, y: float):
     return (math.floor(x), math.floor(y))
 
-def cut_img(im, s: (float, float), e: (float, float)):
+def cut_img(im, s: Tuple[float, float], e: Tuple[float, float]):
     x = s[0]
     y = s[1]
     w = e[0] - x
