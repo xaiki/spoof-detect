@@ -4,7 +4,7 @@ import os
 import math
 import cv2
 import numpy as np
-from typing import NamedTuple, Tuple
+from typing import NamedTuple, Tuple, List
 
 from entity import Entity
 from common import mkdir
@@ -19,8 +19,8 @@ class BoundingBox(NamedTuple):
     h: float = 0.0
 
     @classmethod
-    def from_centroid(cls, c, shape = (1,1,1)):
-        (h, w, c) = shape
+    def from_centroid(cls, c, shape):
+        (ih, iw, ic) = shape
         print(cls, c, shape)
         self = cls(x=math.floor(w*(c.x - c.w/2))
                    , y=math.floor(h*(c.y - c.h/2))
@@ -35,21 +35,48 @@ class BoundingBox(NamedTuple):
 
     @property
     def start(self):
-        return (self.x, self.y)
+        return floor_point(self.x, self.y)
 
     @property
     def end(self):
-        return (self.x + self.w, self.y + self.h)
+        return floor_point(self.x + self.w, self.y + self.h)
 
-    def to_centroid(self, shape = (1,1,1)):
+    def to_centroid(self, shape):
         (h, w, c) = shape
         return Centroid(x=math.floor(self.x + self.w/2)/w
                    , y=math.floor(self.y + self.h/2)/h
                    , w=math.ceil(self.w)/w
                    , h=math.ceil(self.h)/h)
 
+    def intersect(self, f):
+        six = self.x - f.x
+        siy = self.y - f.y
+        eix = six + self.w
+        eiy = siy + self.h
+
+
+
+        if six < 0:
+            if six + self.w < 0:
+                return None
+            six = 0
+        if siy < 0:
+            if siy + self.h < 0:
+                return None
+            siy = 0
+        if eix > f.w:
+            if eix - self.w > f.w:
+                return None
+            eix = f.w
+        if eiy > f.h:
+            if eiy - self.h > f.h:
+                return None
+            eiy = f.h
+
+        return BoundingBox(six, siy, eix - six, eiy - siy)
+
 class Centroid(BoundingBox):
-    def to_bounding_box(self, shape = (1,1,1)):
+    def to_bounding_box(self, shape):
         (h, w, c) = shape
 
         return BoundingBox(
@@ -58,10 +85,8 @@ class Centroid(BoundingBox):
             , w=math.ceil(w*self.w)
             , h=math.ceil(h*self.h))
 
-    def to_anotation(self, id: int, shape=(1,1,1)):
-        (h, w, c) = shape
-
-        return f'{id} {self.x/w} {self.y/h} {self.w/w} {self.h/h}'
+    def to_anotation(self, id: int):
+        return f'{id} {self.x} {self.y} {self.w} {self.h}'
 
 def read_marker(filename: str, Type: type):
     ret = []
@@ -70,8 +95,7 @@ def read_marker(filename: str, Type: type):
         lines = f.readlines()
         for l in lines:
             (b, x,y,w,h) = [float(i) for i in l.split(' ')]
-            bco = b
-            print(b, x,y,w,h)
+            bco = int(b)
             ret.append(Type(x,y,w,h))
     return bco, ret
 
@@ -93,17 +117,16 @@ def floor_point(x: float, y: float):
     return (math.floor(x), math.floor(y))
 
 def cut_img(im, s: Tuple[float, float], e: Tuple[float, float]):
-    x = s[0]
-    y = s[1]
-    w = e[0] - x
-    h = e[1] - y
+    x1 = math.floor(s[0])
+    y1 = math.floor(s[1])
+    x2 = math.floor(e[0])
+    y2 = math.floor(e[1])
 
-    print("DEBUG", im.shape, x, y, w, h)
-    return im[y:h, x:w]
+    return im[y1:y2, x1:x2]
 
 def cut_logo(im, l):
     (x, y, w, h) = floor_logo(l)
-    return im[x:w, y:h]
+    return im[y:y+h, x:x+w]
 
 def add_alpha(img):
     b, g, r = cv2.split(img)
@@ -200,62 +223,26 @@ def crop(id, fn, logos):
             rim = cv2.rectangle(rim, start, end, color, 10)
             li = []
             for l in logos:
-                rim = cv2.rectangle(rim,
-                                    floor_point(l.x, l.y),
-                                    floor_point(l.x + l.w, l.y + l.h),
-                                    logo_color, 5)
-                def intersect():
-                    six = l.x - f.x
-                    siy = l.y - f.y
-                    eix = six + l.w
-                    eiy = siy + l.h
-
-                    #print('intersect', (six, siy), (eix, eiy), f, l)
-
-                    if six < 0:
-                        if six + l.w < 0:
-                            return None
-                        six = 0
-                    if siy < 0:
-                        if siy + l.h < 0:
-                            return None
-                        siy = 0
-                    if eix > tw:
-                        if eix - l.w > tw:
-                            return None
-                        eix = tw
-                    if eiy > th:
-                        if eiy - l.h > th:
-                            return None
-                        eiy = th
-
-                    return BoundingBox(six, siy, eix - six, eiy - siy)
-
-                p = intersect()
+                bl = l.to_bounding_box(im.shape)
+                rim = cv2.rectangle(rim, bl.start, bl.end, logo_color, 5)
+                p = bl.intersect(f)
                 if p:
                     li.append(p)
 
-            nim = im[start[1]:end[1], start[0]:end[0]]
-            rnim = rim[start[1]:end[1], start[0]:end[0]]
+            nim = cut_img(im, start, end)
+            rnim = cut_img(im, start, end)
             img_name =f"{img_out}/{basename}-x{x}y{y}.jpg"
             txt_name =f"{txt_out}/{basename}-x{x}y{y}.txt"
 
             cv2.imwrite(img_name, nim)
             if len(li):
-                with open(txt_name, 'w') as f:
+                with open(txt_name, 'w') as label:
                     for p in li:
-                        cx = p.x
-                        cy = p.y
+                        dim = cv2.rectangle(rnim, p.start, p.end, logo_color, 5)
+                        lc = p.to_centroid((TILE_SIZE, TILE_SIZE, 3))
 
-                        dim = cv2.rectangle(rnim,
-                                           floor_point(cx - p.w/2, cy - p.h/2),
-                                           floor_point(cx + p.w/2, cy + p.h/2),
-                                           logo_color,
-                                           5)
-
-                        a = f"{int(id)} {cx/TILE_SIZE} {cy/TILE_SIZE} {p.w/TILE_SIZE} {p.h/TILE_SIZE}\n"
-                        f.write(a)
-                        print(a)
+                        a = f"{int(id)} {lc.x} {lc.y} {lc.w} {lc.h}"
+                        label.write(a)
                         cv2.imwrite(f'{debug_out}/{basename}{x}{y}.debug.png', dim)
 
     cv2.imwrite(f'{debug_out}/{basename}.debug.png', rim)
