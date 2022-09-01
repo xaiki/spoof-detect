@@ -2,6 +2,7 @@ import os
 import time
 import math
 import random
+import csv
 
 from io import BytesIO
 import numpy as np
@@ -15,6 +16,7 @@ import imgaug as ia
 from imgaug import augmenters as iaa
 from imgaug.augmentables.batches import UnnormalizedBatch
 
+from entity import Entity
 from common import defaults, mkdir
 import imtool
 import pipelines
@@ -26,6 +28,11 @@ mkdir.make_dirs([defaults.AUGMENTED_IMAGES_PATH, defaults.AUGMENTED_LABELS_PATH]
 logo_images = []
 logo_alphas = []
 logo_labels = {}
+
+db = {}
+with open(defaults.MAIN_CSV_PATH, 'r') as f:
+    reader = csv.DictReader(f)
+    db = {e.bco: e for e in [Entity.from_dict(d) for d in reader]}
 
 background_images = [d for d in os.scandir(defaults.IMAGES_PATH)]
 
@@ -46,7 +53,7 @@ for d in os.scandir(defaults.LOGOS_DATA_PATH):
         else:
             png = svg2png(url=d.path)
             img = cv2.imdecode(np.asarray(bytearray(png), dtype=np.uint8), cv2.IMREAD_UNCHANGED)
-        label = d.name.split('.')[0]
+        label = db[d.name.split('.')[0]].id
 
         (h, w, c) = img.shape
         if c == 3:
