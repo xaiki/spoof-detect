@@ -48,13 +48,11 @@ class BoundingBox(NamedTuple):
                    , w=math.ceil(self.w)/w
                    , h=math.ceil(self.h)/h)
 
-    def intersect(self, f):
+    def intersect(self, f, r: float = 0.8):
         six = self.x - f.x
         siy = self.y - f.y
         eix = six + self.w
         eiy = siy + self.h
-
-
 
         if six < 0:
             if six + self.w < 0:
@@ -73,7 +71,11 @@ class BoundingBox(NamedTuple):
                 return None
             eiy = f.h
 
-        return BoundingBox(six, siy, eix - six, eiy - siy)
+        i = BoundingBox(six, siy, eix - six, eiy - siy)
+        if (i.w*i.h) < (self.w*self.h)*r:
+            return None
+
+        return i
 
 class Centroid(BoundingBox):
     def to_bounding_box(self, shape):
@@ -225,7 +227,7 @@ def crop(id, fn, logos: List[Centroid], out = './data/squares'):
             for l in logos:
                 bl = l.to_bounding_box(im.shape)
                 rim = cv2.rectangle(rim, bl.start, bl.end, logo_color, 5)
-                p = bl.intersect(f)
+                p = bl.intersect(f, 0.5)
                 if p:
                     li.append(p)
 
