@@ -25,6 +25,7 @@ mkdir.make_dirs([defaults.AUGMENTED_IMAGES_PATH, defaults.AUGMENTED_LABELS_PATH]
 
 logo_images = []
 logo_alphas = []
+logo_labels = {}
 
 background_images = [d for d in os.scandir(defaults.IMAGES_PATH)]
 
@@ -45,7 +46,7 @@ for d in os.scandir(defaults.LOGOS_DATA_PATH):
         else:
             png = svg2png(url=d.path)
             img = cv2.imdecode(np.asarray(bytearray(png), dtype=np.uint8), cv2.IMREAD_UNCHANGED)
-        stats['ok'] += 1
+        label = d.name.split('.')[0]
 
         (h, w, c) = img.shape
         if c == 3:
@@ -59,10 +60,20 @@ for d in os.scandir(defaults.LOGOS_DATA_PATH):
 
         assert(w > 10)
         assert(h > 10)
+
+        stats['ok'] += 1
+
         (b, g, r, _) = cv2.split(img)
         alpha = img[:, :, 3]/255
-        logo_images.append(cv2.merge([b, g, r]))
-        # XXX(xaiki): we pass alpha as a float32 heatmap, because imgaug is pretty strict about what data it will process
+        d = cv2.merge([b, g, r])
+
+        logo_images.append(d)
+        # tried id() tried __array_interface__, tried tagging, nothing works
+        logo_labels.update({d.tobytes(): label})
+
+        # XXX(xaiki): we pass alpha as a float32 heatmap,
+        # because imgaug is pretty strict about what data it will process
+        # and that we want the alpha layer to pass the same transformations as the orig
         logo_alphas.append(np.dstack((alpha, alpha, alpha)).astype('float32'))
 
     except Exception as e:
@@ -98,6 +109,9 @@ with pipeline.pool(processes=-1, seed=1) as pool:
             anotations = []
             for k in range(math.floor(len(batch_aug.images_aug)/3)):
                 logo_idx = (j+k*4)%len(batch_aug.images_aug)
+
+                orig = batch_aug.images_unaug[logo_idx]
+                label = logo_labels[orig.tobytes()]
                 logo = batch_aug.images_aug[logo_idx]
 
                 # XXX(xaiki): we get alpha from heatmap, but will only use one channel
@@ -106,7 +120,7 @@ with pipeline.pool(processes=-1, seed=1) as pool:
                 try:
                     img, bb, (w, h) = imtool.mix_alpha(img, logo, alpha[0], random.random(), random.random())
                     c = bb.to_centroid((h, w, 1))
-                    anotations.append(c.to_anotation(0))
+                    anotations.append(c.to_anotation(label))
                 except AssertionError as e:
                     print(f'couldnt process {i}, {j}: {e}')
 
