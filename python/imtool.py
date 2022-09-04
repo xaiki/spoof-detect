@@ -183,7 +183,7 @@ def _mix_alpha(a, b, ba, fx, fy):
 
     a[y:y+bh,x:x+bw] = mat * (1 - mask) + cols * mask
 
-    return a, BoundingBox(x, y, bw, bh), (aw, ah)
+    return BoundingBox(x, y, bw, bh)
 
 def crop(id, fn, logos: List[Centroid], out = './data/squares'):
     basename = os.path.basename(fn).replace('.png', '')

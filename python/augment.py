@@ -88,8 +88,27 @@ for d in os.scandir(defaults.LOGOS_DATA_PATH):
         print(f'error loading: {d.path}: {e}')
 
 print(stats)
-batches = [UnnormalizedBatch(images=logo_images[i:i+BATCH_SIZE],heatmaps=logo_alphas[i:i+BATCH_SIZE])
-           for i in range(math.floor(len(logo_images)/BATCH_SIZE))]
+#print(len(logo_alphas), len(logo_images), len(logo_labels))
+assert(len(logo_alphas) == len(logo_images))
+
+# so that we don't get a lot of the same logos on the same page.
+zipped = list(zip(logo_images, logo_alphas))
+random.shuffle(zipped)
+logo_images, logo_alphas = zip(*zipped)
+
+n = len(logo_images)
+batches = []
+for i in range(math.floor(n*2/BATCH_SIZE)):
+    s = (i*BATCH_SIZE)%n
+    e = min(s + BATCH_SIZE, n)
+    le = max(0, BATCH_SIZE - (e - s))
+
+    a = logo_images[0:le] + logo_images[s:e]
+    h = logo_alphas[0:le] + logo_alphas[s:e]
+
+    assert(len(a) == BATCH_SIZE)
+
+    batches.append(UnnormalizedBatch(images=a,heatmaps=h))
 
 # We use a single, very fast augmenter here to show that batches
 # are only loaded once there is space again in the buffer.
@@ -125,8 +144,9 @@ with pipeline.pool(processes=-1, seed=1) as pool:
                 # we could make mix_alpha into mix_mask and pass all 3 chanels
                 alpha = cv2.split(batch_aug.heatmaps_aug[logo_idx])
                 try:
-                    img, bb, (w, h) = imtool.mix_alpha(img, logo, alpha[0], random.random(), random.random())
-                    c = bb.to_centroid((h, w, 1))
+                    bb = imtool.mix_alpha(img, logo, alpha[0],
+                                          random.random(), random.random())
+                    c = bb.to_centroid(img.shape)
                     anotations.append(c.to_anotation(label))
                 except AssertionError as e:
                     print(f'couldnt process {i}, {j}: {e}')
