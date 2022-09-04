@@ -5,7 +5,7 @@ import argparse
 from common import defaults
 
 def gen_data_yaml(bcos):
-    names = [f"{d.name}" for d in bcos.values()]
+    names = [f"{d['name']}" for d in bcos.values()]
     return f'''
 train: ../data/squares
 val: ../data/squares
