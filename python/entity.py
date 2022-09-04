@@ -4,8 +4,12 @@ from typing import NamedTuple
 
 from common import defaults
 
-def read_entities(fn):
-    with open(defaults.MAIN_DATA_PATH, newline='') as csvfile:
+def update(d, i):
+    d.update(i)
+    return d
+
+def read_entities(fn = defaults.MAIN_CSV_PATH):
+    with open(fn, newline='') as csvfile:
         reader = csv.DictReader(csvfile)
         bcos = { d['bco']:update(d, {'id': i}) for i, d in enumerate(reader)}
     return bcos

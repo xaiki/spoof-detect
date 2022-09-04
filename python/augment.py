@@ -140,9 +140,12 @@ with pipeline.pool(processes=-1, seed=1) as pool:
                 label = logo_labels[orig.tobytes()]
                 logo = batch_aug.images_aug[logo_idx]
 
+                assert(logo.shape == orig.shape)
+
                 # XXX(xaiki): we get alpha from heatmap, but will only use one channel
                 # we could make mix_alpha into mix_mask and pass all 3 chanels
                 alpha = cv2.split(batch_aug.heatmaps_aug[logo_idx])
+
                 try:
                     bb = imtool.mix_alpha(img, logo, alpha[0],
                                           random.random(), random.random())

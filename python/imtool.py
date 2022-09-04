@@ -21,7 +21,6 @@ class BoundingBox(NamedTuple):
     @classmethod
     def from_centroid(cls, c, shape):
         (ih, iw, ic) = shape
-        print(cls, c, shape)
         self = cls(x=math.floor(w*(c.x - c.w/2))
                    , y=math.floor(h*(c.y - c.h/2))
                    , w=math.ceil(w*c.w)
@@ -158,7 +157,7 @@ def mix_alpha(a, b, ba, fx, fy):
     if (aw*p < bw or ah*p < bh):
         f = min(p*aw/bw, p*ah/bh)
         nw, nh = floor_point(bw*f, bh*f)
-        print(f'resizing, factor {f} to fit in {aw}x{ah}\n -- {bw}x{bh} => {nw}x{nh}')
+        print(f'resizing to fit in {aw}x{ah}\t {bw}x{bh}\t=> {nw}x{nh}\tfactor {f}')
         r = cv2.resize(b, (nw, nh), interpolation = cv2.INTER_LINEAR)
         rba = cv2.resize(ba, (nw, nh), interpolation = cv2.INTER_LINEAR)
 
@@ -232,7 +231,7 @@ def crop(id, fn, logos: List[Centroid], out = './data/squares'):
                     li.append(p)
 
             nim = cut_img(im, start, end)
-            rnim = cut_img(im, start, end)
+            rnim = cut_img(rim, start, end)
             img_name =f"{img_out}/{basename}-x{x}y{y}.jpg"
             txt_name =f"{txt_out}/{basename}-x{x}y{y}.txt"
 
