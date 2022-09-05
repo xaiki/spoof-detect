@@ -13,7 +13,7 @@ train: {datapath}/squares
 val: {datapath}/squares
 
 nc: {len(bcos.keys())}
-names: [{names}]
+names: {names}
 '''
 
 if __name__ == '__main__':
