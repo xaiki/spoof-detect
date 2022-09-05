@@ -1,8 +1,9 @@
-FROM docker.io/jjanzic/docker-python3-opencv
+FROM docker.io/python:3-slim-buster
 MAINTAINER Niv Sardi <x@filtra.me>
 WORKDIR /app
 
 COPY python ./src
 RUN pip install -r ./src/requirements.txt
+RUN apt update && apt install -y libglib2.0-0 libgl1 && rm -rf /var/cache/apt
 
 CMD python3 ./src/watcher.py
