@@ -18,10 +18,10 @@ def query_vendor_site(e: Entity):
     sfn = screenshot.sc_entity(e)
     return (fn, lfn, sfn)
 
-def from_csv(fn: str):
+def from_csv(fn: str, n_workers = PARALLEL):
     with open(fn, newline='') as csvfile:
         reader = csv.DictReader(csvfile)
-        with concurrent.futures.ThreadPoolExecutor(max_workers = PARALLEL) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers = n_workers) as executor:
             futures = {executor.submit(query_vendor_site, e): e for e in [Entity.from_dict(d) for d in reader]}
             bar = ChargingBar('Processing', max=len(futures))
             for f in concurrent.futures.as_completed(futures):
@@ -40,4 +40,15 @@ def from_csv(fn: str):
 #exit()
 
 if __name__ == '__main__':
-    from_csv(defaults.MAIN_CSV_PATH)
+    import argparse
+
+    parser = argparse.ArgumentParser(description='extract certificates and screenshots websites')
+    parser.add_argument('--csv', metavar='csv', type=str,
+                        default=defaults.MAIN_CSV_PATH,
+                        help='main database')
+    parser.add_argument('--parallel', metavar='parallel', type=int,
+                        default=PARALLEL,
+                        help='number of concurrent jobs')
+
+    args = parser.parse_args()
+    from_csv(args.csv)
