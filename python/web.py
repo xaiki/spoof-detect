@@ -18,9 +18,10 @@ def get_page(e: Entity):
 def get_cert(e: Entity):
     ssl_url = e.url.split("/")[2]
     mkdir.make_dirs([defaults.CERTS_PATH])
+    fn = f"{defaults.CERTS_PATH}/{e.bco}.cert"
+
     try:
         cert = ssl.get_server_certificate((ssl_url, 443), ca_certs=None)
-        fn = f"{defaults.CERTS_PATH}/{e.bco}.cert"
         with open(fn, 'w') as f:
             f.write(cert)
     except Exception as err:
