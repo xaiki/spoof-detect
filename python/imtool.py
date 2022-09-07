@@ -107,7 +107,7 @@ def read_centroids(filename: str):
     return read_marker(filename, Centroid)
 
 def coord_dict_to_point(c: dict):
-    return coord_to_point(c['x'], c['y'], c['width'], c['heigh'])
+    return coord_to_point(c['x'], c['y'], c['width'], c['height'])
 
 def coord_to_point(cx, cy, cw, ch):
     x = math.floor(cx + cw/2)
