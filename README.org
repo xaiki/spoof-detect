@@ -18,7 +18,8 @@ The process is pretty simple:
 * running
 #+begin_src sh
   # build the training dataset
-  docker-compose up --build --remove-orphans
+  docker-compose up --build --remove-orphans -d
+  docker-compose exec python ./run
 
   # run the training on your machine or collab
   # https://colab.research.google.com/drive/10R7uwVJJ1R1k6oTjbkkhxPDka7COK-WE

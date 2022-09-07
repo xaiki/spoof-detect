@@ -1,50 +1,75 @@
 version: "3.9"  # optional since v1.27.0
 services:
-  crawler:
+  python:
     build:
       dockerfile: Dockerfile.python
       context: .
-    command: "python3 src/main.py"
-    volumes:
-      - "./data:/app/data:z"
-
-  puppet:
-    build:
-      dockerfile: Dockerfile.deno
-      context: .
-    links:
-      - browserless
     environment:
-      BROWSERLESS_HOST: browserless
-      BROWSERLESS_PORT: 3000
-      DEBUG: "puppet"
+       GECKO_HOST: geckodriver
+       GECKO_PORT: 4444
     depends_on:
-      - "browserless"
-    # command: "sh -c 'while echo deno; do sleep 3h; done'" # debug
-    command: "deno run --allow-net --allow-env --allow-read --allow-write src/index.ts"
+      - "geckodriver"
+    links:
+      - "geckodriver"
     volumes:
-       - "./deno:/app/src:z" # for debugging
-       - "./data:/app/data:z"
-    #restart: unless-stopped:600
-    deploy:
-      restart_policy:
-        condition: any
-        delay: 600s
-        window: 300s
-
-  cutter:
-    build:
-      dockerfile: Dockerfile.python
-      context: .
-    depends_on:
-      - "puppet"
-    volumes:
-      - "./python:/app/src:z" # for debugging
+      - "./python:/app/python:z" # for debugging
       - "./data:/app/data:z"
 
-  browserless:
-     image: docker.io/zenika/alpine-chrome
-     entrypoint: ["sh", "-c", "while true; do chromium-browser --headless --use-gl=swiftshader --disable-software-rasterizer --disable-dev-shm-usage --no-sandbox --remote-debugging-address=0.0.0.0 --remote-debugging-port=3000; sleep 2; done"]
-     ports:
-       - "3000:3000"
+  geckodriver:
+    image: docker.io/instrumentisto/geckodriver
+    entrypoint: ["sh", "-c", "while true; do geckodriver --binary=/opt/firefox/firefox --log warn --port 4444 --host 0.0.0.0; sleep 2; done"]
+    ports: # this is not required but nice for local debug
+      - "4444:4444"
+  # crawler:
+  #   build:
+  #     dockerfile: Dockerfile.python
+  #     context: .
+  #   command: "sh -c 'while true; do python3 src/get_entities.py; touch data/entities.csv; sleep 24h; done'"
+  #   volumes:
+  #     - "./data:/app/data:z"
+
+  # cutter:
+  #   build:
+  #     dockerfile: Dockerfile.python
+  #     context: .
+  #   environment:
+  #      GECKO_HOST: geckodriver
+  #      GECKO_PORT: 4444
+  #   depends_on:
+  #     - "geckodriver"
+  #   links:
+  #     - "geckodriver"
+  #   volumes:
+  #     - "./python:/app/src:z" # for debugging
+  #     - "./data:/app/data:z"
+
+  # browserless:
+  #    image: docker.io/zenika/alpine-chrome
+  #    entrypoint: ["sh", "-c", "while true; do chromium-browser --headless --use-gl=swiftshader --disable-software-rasterizer --disable-dev-shm-usage --no-sandbox --remote-debugging-address=0.0.0.0 --remote-debugging-port=3000; sleep 2; done"]
+  #    ports:
+  #      - "3000:3000"
+
+  # puppet:
+  #   build:
+  #     dockerfile: Dockerfile.deno
+  #     context: .
+  #   links:
+  #     - browserless
+  #   environment:
+  #     BROWSERLESS_HOST: browserless
+  #     BROWSERLESS_PORT: 3000
+  #     DEBUG: "puppet"
+  #   depends_on:
+  #     - "browserless"
+  #   #command: "sh -c 'while echo deno; do sleep 3h; done'" # debug
+  #   command: "deno run --allow-net --allow-env --allow-read --allow-write src/index.ts"
+  #   volumes:
+  #      - "./deno:/app/src:z" # for debugging
+  #      - "./data:/app/data:z"
+  #   #restart: unless-stopped:600
+  #   deploy:
+  #     restart_policy:
+  #       condition: any
+  #       delay: 600s
+  #       window: 300s
 
