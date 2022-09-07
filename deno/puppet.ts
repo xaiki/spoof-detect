@@ -14,11 +14,11 @@ const CHROME_ARGS = [
     '--disable-setuid-sandbox'
 ];
 
-async function resolve(a: string) {
-    if (a.match(/(\d.?){4}/)) {
-        return a;
+async function resolve(q: string) {
+    if (q.match(/(\d.?){4}/)) {
+        return q;
     }
-    return await Deno.resolveDns(a, "A");
+    return await Deno.resolveDns(q, "A");
 }
 
 export default class Runner extends EventEmitter {
