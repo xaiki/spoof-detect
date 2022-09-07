@@ -95,7 +95,7 @@ function process(o: { id: int, url: string, bco: string, name: string }): Promis
 async function run() {
   let text;
   try {
-    text = await Deno.readTextFile("./data/entidades.csv")
+    text = await Deno.readTextFile("./data/entities.csv")
   } catch (e) {
     console.error(`couldn't read csv: ${e}`)
   }
