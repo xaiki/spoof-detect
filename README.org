@@ -20,13 +20,13 @@ The process is pretty simple:
   # build the training dataset
   docker-compose up --build --remove-orphans -d
   docker-compose exec python ./run
-
+  
   # run the training on your machine or collab
   # https://colab.research.google.com/drive/10R7uwVJJ1R1k6oTjbkkhxPDka7COK-WE
   git clone https://github.com/ultralytics/yolov5  # clone repo
   pip install -U -r yolov5/requirements.txt  # install dependencies
   python3 yolov5/train.py --img 416 --batch 80 --epochs 100 --data ./ia/data.yaml  --cfg ./ia/yolov5s.yaml --weights ''
-
+  
 #+end_src
 
 * research
@@ -38,10 +38,10 @@ https://github.com/Hyuto/yolov5-tfjs
 there were a lot of augmentation solutions out there, because it had better
 piplines and multicore support we went with:
  - https://github.com/aleju/imgaug
-
+   
 but leaving the other here for refs
  - https://github.com/srp-31/Data-Augmentation-for-Object-Detection-YOLO-
- - https://github.com/mdbloice/Augmentor
+ - https://github.com/mdbloice/Augmentor 
 
 ** proveedores
 http://www.bcra.gov.ar/SistemasFinancierosYdePagos/Proveedores-servicios-de-pago-ofrecen-cuentas-de-pago.asp

@@ -4,7 +4,7 @@ let run = () => {
     // https://developer.chrome.com/extensions/match_patterns
     var ALL_SITES = { urls: ['<all_urls>'] }
 
-    // Mozilla doesn't use tlsInfo in extraInfoSpec
+    // Mozilla doesn't use tlsInfo in extraInfoSpec 
     var extraInfoSpec = ['blocking'];
 
     // https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/webRequest/onHeadersReceived

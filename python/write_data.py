@@ -20,7 +20,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='creates a YOLOv5 data.yaml')
     parser.add_argument('csv', metavar='csv', type=str, 
                     help='csv file')
-    parser.add_argument('--data', metavar='data', type=str,
+    parser.add_argument('--data', metavar='data', type=str, 
                         help='data path', default='../data')
     args = parser.parse_args()
     bcos =  entity.read_entities(args.csv)

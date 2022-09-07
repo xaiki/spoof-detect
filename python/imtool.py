@@ -131,7 +131,7 @@ def cut_logo(im, l):
 
 def add_alpha(img):
     b, g, r = cv2.split(img)
-    a = np.ones(b.shape, dtype=b.dtype) * 50
+    a = np.ones(b.shape, dtype=b.dtype) * 50 
     return cv2.merge((b,g,r,a))
 
 def remove_white(img):
