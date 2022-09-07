@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 #
-
+import os
 import math
+import socket
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -15,8 +16,19 @@ from imtool import coord_dict_to_point
 options = webdriver.FirefoxOptions()
 options.add_argument("--headless")
 options.add_argument("--window-size=1920x8000")
+options.set_preference('WebglAllowWindowsNativeGl', True)
 
-driver = webdriver.Firefox(options=options)
+host = os.getenv('GECKO_HOST') or 'localhost'
+port = os.getenv('GECKO_PORT') or '4444'
+ip = socket.gethostbyname(host)
+
+print(f'host: {host}->{ip}, port: {port}')
+
+driver = webdriver.Remote(
+    options=options,
+    desired_capabilities=webdriver.DesiredCapabilities.FIREFOX,
+    command_executor=f"http://{ip}:{port}"
+)
 def sc_entity(e: Entity):
     print(f'screenshoting: {e}')
     mkdir.make_dirs([
@@ -27,7 +39,12 @@ def sc_entity(e: Entity):
     driver.implicitly_wait(10)
     driver.get(e.url)
     #driver.save_screenshot(f"{defaults.DATA_PATH}/{e.bco}.png")
-    driver.save_full_page_screenshot(f"{defaults.IMAGES_PATH}/{e.bco}.full.png")
+
+    p = f"{defaults.IMAGES_PATH}/{e.bco}.full.png"
+    html = driver.find_element(By.TAG_NAME, 'html')
+    # driver.save_screenshot(p)
+    html.screenshot(p)
+    print(f'wrote: {p}')
 
     logos = driver.find_elements(By.CSS_SELECTOR, selectors.img_logo) or []
     logos.extend(driver.find_elements(By.CSS_SELECTOR, selectors.id_logo) or [])
