@@ -1,6 +1,9 @@
 #!/bin/sh
 
+set -e
+
 PY=python3
+
 echo "🏛 fetching entities"
 ${PY} ./python/get_entities.py
 echo "🌏 getting vendor data"
@@ -9,4 +12,5 @@ echo "✨ augmenting data"
 ${PY} ./python/augment.py
 echo "🖼 croping augmented data"
 ${PY} ./python/crop.py ./data/augmented/images
-echo "TODO: 🧠 train model"
+echo "🧠 train model"
+sh train.sh
