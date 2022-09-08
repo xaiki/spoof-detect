@@ -7,7 +7,7 @@ from common import defaults
 def read_entities(fn = defaults.MAIN_CSV_PATH):
     with open(fn, newline='') as csvfile:
         reader = csv.DictReader(csvfile)
-        bcos = { d['bco']:d for  d in reader}
+        bcos = { d['bco']:Entity.from_dict(d) for d in reader}
     return bcos
 
 class Entity(NamedTuple):
