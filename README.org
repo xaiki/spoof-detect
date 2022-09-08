@@ -4,14 +4,14 @@ Detect spoofed website by detecting logos from bank and financial entities in
 pages with =ssl certificates= that do not match.
 
 The process is pretty simple:
- - [/] scrape gvt websites to get a list of entities (for argentina it's BCRA)
- - [/] get logos, names and url
- - [/] navigate the url, extract the ssl certificate and look for =img= and tags
+ - [x] scrape gvt websites to get a list of entities (for argentina it's BCRA)
+ - [x] get logos, names and url
+ - [x] navigate the url, extract the ssl certificate and look for =img= and tags
    with =id= or =class= logo (needs more heuristics) to make a db of logos
- - [/] screenshot the page and slice it into tiles generating YOLO annotations for
+ - [x] screenshot the page and slice it into tiles generating YOLO annotations for
    the detected logos
- - [ ] augment data using the logos database and the logoless tiles as background images
- - [ ] train yolov5s
+ - [x] augment data using the logos database and the logoless tiles as background images
+ - [x] train yolov5s
  - [ ] feed everything to a web extension that will detect the logos in any page
    and show a warning if the =SSL certificate= mismatches the collected one.
 
