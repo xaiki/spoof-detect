@@ -26,7 +26,6 @@ import pipelines
 BATCH_SIZE = 16
 
 def process(args):
-
     dest_images_path = os.path.join(args.dest, 'images')
     dest_labels_path = os.path.join(args.dest, 'labels')
 
@@ -129,19 +128,26 @@ def process(args):
 
     batches_generator = create_generator(batches)
 
+    batch = 0
     with pipeline.pool(processes=-1, seed=1) as pool:
         batches_aug = pool.imap_batches(batches_generator, output_buffer_size=5)
 
-        print(f"Requesting next augmented batch...")
+        print(f"Requesting next augmented batch...{batch}/{len(batches)}")
         for i, batch_aug in enumerate(batches_aug):
             idx = list(range(len(batch_aug.images_aug)))
             random.shuffle(idx)
             for j, d in enumerate(background_images):
-                img = imtool.remove_white(cv2.imread(d.path))
+                try:
+                    img = imtool.remove_white(cv2.imread(d.path))
+                except:
+                    print("couldnt remove white, skipping")
+                    next
+
                 basename = d.name.replace('.png', '') + f'.{i}.{j}'
 
                 anotations = []
                 for k in range(math.floor(len(batch_aug.images_aug)/3)):
+                    bar.next()
                     logo_idx = (j+k*4)%len(batch_aug.images_aug)
 
                     orig = batch_aug.images_unaug[logo_idx]
@@ -173,8 +179,8 @@ def process(args):
                     print(f'couldnt write image {basename}')
 
             if i < len(batches)-1:
-                print("Requesting next augmented batch...")
-            bar.next()
+                print(f"Requesting next augmented batch...{batch}/{len(batches)}")
+                batch += 1
         bar.finish()
 
 if __name__ == '__main__':
