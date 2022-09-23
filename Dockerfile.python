@@ -10,5 +10,5 @@ COPY run.sh ./run
 RUN chmod +x run
 COPY python ./python
 
-CMD sh -c 'while true; do  echo "🐍 waiting" ; sleep 2h; done'
+CMD sh -c 'while true; do  echo "🐍 python waiting" ; sleep 2h; done'
 
