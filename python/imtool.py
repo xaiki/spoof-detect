@@ -157,7 +157,7 @@ def mix_alpha(a, b, ba, fx, fy):
     if (aw*p < bw or ah*p < bh):
         f = min(p*aw/bw, p*ah/bh)
         nw, nh = floor_point(bw*f, bh*f)
-        print(f'resizing to fit in {aw}x{ah}\t {bw}x{bh}\t=> {nw}x{nh}\tfactor {f}')
+        # print(f'resizing to fit in {aw}x{ah}\t {bw}x{bh}\t=> {nw}x{nh}\tfactor {f}')
         r = cv2.resize(b, (nw, nh), interpolation = cv2.INTER_LINEAR)
         rba = cv2.resize(ba, (nw, nh), interpolation = cv2.INTER_LINEAR)
 
