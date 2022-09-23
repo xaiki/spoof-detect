@@ -20,6 +20,38 @@ services:
     entrypoint: ["sh", "-c", "while true; do geckodriver --binary=/opt/firefox/firefox --log warn --port 4444 --host 0.0.0.0; sleep 2; done"]
     ports: # this is not required but nice for local debug
       - "4444:4444"
+
+  browserless:
+      image: docker.io/zenika/alpine-chrome
+      entrypoint: ["sh", "-c", "while true; do chromium-browser --headless --use-gl=swiftshader --disable-software-rasterizer --disable-dev-shm-usage --no-sandbox --remote-debugging-address=0.0.0.0 --remote-debugging-port=3000; sleep 2; done"]
+      ports:
+        - "3000:3000"
+
+  puppet:
+    build:
+      dockerfile: Dockerfile.deno
+      context: .
+    links:
+      - browserless
+    environment:
+      BROWSERLESS_HOST: browserless
+      BROWSERLESS_PORT: 3000
+      DEBUG: "puppet"
+    depends_on:
+      - "browserless"
+    command: "sh -c 'while echo 🦕 deno waiting; do sleep 3h; done'" # debug
+    #command: "deno run --allow-net --allow-env --allow-read --allow-write src/index.ts"
+    volumes:
+       - "./deno:/app/src:z" # for debugging
+       - "./data:/app/data:z"
+    #restart: unless-stopped:600
+    deploy:
+      restart_policy:
+        condition: any
+        delay: 600s
+        window: 300s
+
+
   # crawler:
   #   build:
   #     dockerfile: Dockerfile.python
@@ -43,33 +75,4 @@ services:
   #     - "./python:/app/src:z" # for debugging
   #     - "./data:/app/data:z"
 
-  # browserless:
-  #    image: docker.io/zenika/alpine-chrome
-  #    entrypoint: ["sh", "-c", "while true; do chromium-browser --headless --use-gl=swiftshader --disable-software-rasterizer --disable-dev-shm-usage --no-sandbox --remote-debugging-address=0.0.0.0 --remote-debugging-port=3000; sleep 2; done"]
-  #    ports:
-  #      - "3000:3000"
-
-  # puppet:
-  #   build:
-  #     dockerfile: Dockerfile.deno
-  #     context: .
-  #   links:
-  #     - browserless
-  #   environment:
-  #     BROWSERLESS_HOST: browserless
-  #     BROWSERLESS_PORT: 3000
-  #     DEBUG: "puppet"
-  #   depends_on:
-  #     - "browserless"
-  #   #command: "sh -c 'while echo deno; do sleep 3h; done'" # debug
-  #   command: "deno run --allow-net --allow-env --allow-read --allow-write src/index.ts"
-  #   volumes:
-  #      - "./deno:/app/src:z" # for debugging
-  #      - "./data:/app/data:z"
-  #   #restart: unless-stopped:600
-  #   deploy:
-  #     restart_policy:
-  #       condition: any
-  #       delay: 600s
-  #       window: 300s
 
