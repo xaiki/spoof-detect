@@ -159,8 +159,10 @@ def process(args):
                                               random.random(), random.random())
                         c = bb.to_centroid(img.shape)
                         anotations.append(c.to_anotation(label))
-                    except AssertionError as e:
-                        print(f'couldnt process {i}, {j}: {e}')
+                    except AssertionError as err:
+                        print(f'couldnt process {i}, {j}: {err}')
+                    except Exception as err:
+                        print(f'error in mix pipeline: {err}')
 
                 try:
                     cv2.imwrite(f'{dest_images_path}/{basename}.png', img)
@@ -183,8 +185,7 @@ if __name__ == '__main__':
                         default=defaults.LOGOS_DATA_PATH,
                         help='dir containing logos')
     parser.add_argument('--backgrounds', metavar='backgrounds', type=str,
-
-                        default=defaults.IMAGES_PATH,
+                        default=defaults.SCREENSHOT_PATH,
                         help='dir containing background plates')
     parser.add_argument('--dst', dest='dest', type=str,
                         default=defaults.AUGMENTED_DATA_PATH,
