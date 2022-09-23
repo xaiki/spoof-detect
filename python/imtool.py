@@ -184,11 +184,10 @@ def _mix_alpha(a, b, ba, fx, fy):
 
     return BoundingBox(x, y, bw, bh)
 
-def crop(id, fn, logos: List[Centroid], out = './data/squares'):
+def crop(id, fn, logos: List[Centroid], out = './data/squares', debug_out = './data/debug/'):
     basename = os.path.basename(fn).replace('.png', '')
     img_out = f"{out}/images"
     txt_out = f"{out}/labels"
-    debug_out = f"{out}/debug"
     mkdir.make_dirs([debug_out, img_out, txt_out])
 
     im = cv2.imread(fn)
