@@ -46,7 +46,17 @@ Entity {self.id}:
     def to_row(self):
         return [self.id, self.name, self.bco, self.url, self.logo]
 
+    def to_dict(self):
+        return {
+            'id':   self.id,
+            'name': self.name,
+            'bco':  self.bco,
+            'url':  self.url,
+            'logo': self.logo
+        }
+
 if __name__ == '__main__':
     e = Entity.from_dict({'name': 'test', 'url': 'blah'})
     assert(e.url == 'blah')
     print(e)
+    print(e.to_dict())
