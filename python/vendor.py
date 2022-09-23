@@ -7,32 +7,39 @@ from progress.bar import ChargingBar
 
 from entity import Entity
 from common import defaults,mkdir
-import screenshot
 import web
 
 PARALLEL = 20
 
-def query_vendor_site(e: Entity):
-    fn = web.get_cert(e)
-    lfn = web.get_logos(e)
-    sfn = screenshot.sc_entity(e)
-    return (fn, lfn, sfn)
+def do_screenshot(e: Entity):
+    sfn = requests.post('http://puppet:8000/screenshot', json={
+        'url': e.url,
+        'id': e.id,
+        'path': f'{defaults.SCREENSHOT_PATH}/{e.bco}.png',
+        'logos': f'{defaults.LOGOS_DATA_PATH}/{e.bco}.png'
+    })
+
+ACTIONS = [web.get_cert, web.get_logos, do_screenshot]
 
 def from_csv(fn: str, n_workers = PARALLEL):
+    mkdir.make_dirs([defaults.SCREENSHOT_PATH])
     with open(fn, newline='') as csvfile:
         reader = csv.DictReader(csvfile)
         with concurrent.futures.ThreadPoolExecutor(max_workers = n_workers) as executor:
-            futures = {executor.submit(query_vendor_site, e): e for e in [Entity.from_dict(d) for d in reader]}
-            bar = ChargingBar('Processing', max=len(futures))
+            futures = {}
+            entities = [Entity.from_dict(d) for d in reader]
+            bar = ChargingBar('vendor', max=len(entities*len(ACTIONS)))
+
+            for e in entities:
+                futures.update({executor.submit(f, e): (e, f) for f in ACTIONS})
+            print('waiting for futures')
+
             for f in concurrent.futures.as_completed(futures):
-                url = futures[f]
+                (e, a) = futures[f]
                 try:
-                    (cert, logos) = f.result()
-                except Exception as exc:
-                    print('%r generated an exception: %s' % (url, exc))
-                    raise
-                else:
-                    print(cert, logos)
+                    f.result()
+                except Exception as err:
+                    print(f'{a}({e.url}) generated an exception: {err}')
                 bar.next()
             bar.finish()
 
