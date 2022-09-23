@@ -4,14 +4,19 @@ Detect spoofed website by detecting logos from bank and financial entities in
 pages with =ssl certificates= that do not match.
 
 The process is pretty simple:
- - [x] scrape gvt websites to get a list of entities (for argentina it's BCRA)
+ - [1/2] scrape gvt websites to get a list of entities.
+   - [x] 🇦🇷 BCRA ok
+   - [ ] other countries 
  - [x] get logos, names and url
  - [x] navigate the url, extract the ssl certificate and look for =img= and tags
    with =id= or =class= logo (needs more heuristics) to make a db of logos
  - [x] screenshot the page and slice it into tiles generating YOLO annotations for
    the detected logos
  - [x] augment data using the logos database and the logoless tiles as background images
- - [x] train yolov5s
+ - [2/3] train YOLO
+   - [x] v5
+   - [x] v6
+   . [ ] v7 (actually slower than v6)
  - [ ] feed everything to a web extension that will detect the logos in any page
    and show a warning if the =SSL certificate= mismatches the collected one.
 
@@ -20,13 +25,13 @@ The process is pretty simple:
   # build the training dataset
   docker-compose up --build --remove-orphans -d
   docker-compose exec python ./run
-  
+
   # run the training on your machine or collab
   # https://colab.research.google.com/drive/10R7uwVJJ1R1k6oTjbkkhxPDka7COK-WE
   git clone https://github.com/ultralytics/yolov5  # clone repo
   pip install -U -r yolov5/requirements.txt  # install dependencies
   python3 yolov5/train.py --img 416 --batch 80 --epochs 100 --data ./ia/data.yaml  --cfg ./ia/yolov5s.yaml --weights ''
-  
+
 #+end_src
 
 * research
@@ -38,7 +43,7 @@ https://github.com/Hyuto/yolov5-tfjs
 there were a lot of augmentation solutions out there, because it had better
 piplines and multicore support we went with:
  - https://github.com/aleju/imgaug
-   
+
 but leaving the other here for refs
  - https://github.com/srp-31/Data-Augmentation-for-Object-Detection-YOLO-
  - https://github.com/mdbloice/Augmentor 
@@ -53,3 +58,6 @@ http://www.bcra.gob.ar/SistemasFinancierosYdePagos/Entidades_financieras.asp
 https://stackoverflow.com/questions/6566545/is-there-any-way-to-access-certificate-information-from-a-chrome-extension
 https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/webRequest#accessing_security_information
 https://chromium-review.googlesource.com/c/chromium/src/+/644858
+
+** papers
+https://logomotive.sidnlabs.nl/downloads/LogoMotive_paper.pdf
