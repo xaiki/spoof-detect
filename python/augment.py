@@ -117,7 +117,7 @@ def process(args):
 
         batches.append(UnnormalizedBatch(images=a,heatmaps=h))
 
-    bar = ChargingBar('Processing', max=len(batches))
+    bar = ChargingBar('augment', max=(len(batches)**2)/3*len(background_images))
     # We use a single, very fast augmenter here to show that batches
     # are only loaded once there is space again in the buffer.
     pipeline = pipelines.HUGE

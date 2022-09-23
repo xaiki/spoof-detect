@@ -22,7 +22,7 @@ with open(f'{defaults.MAIN_CSV_PATH}.tmp', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile)
     writer.writerow(Entity.row_names())
 
-    bar = ChargingBar('Processing', max=len(options))
+    bar = ChargingBar('get entities', max=len(options))
     for o in options[1:]:
         def get_bco():
             (name, bco)= (o.text, o.attrs['value'])
