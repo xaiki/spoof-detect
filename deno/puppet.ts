@@ -1,6 +1,6 @@
-import Puppeteer from "https://deno.land/x/puppeteer@14.1.1/mod.ts";
+import Puppeteer from "https://deno.land/x/puppeteer@16.2.0/mod.ts";
 import EventEmitter from "https://deno.land/x/events@v1.0.0/mod.ts";
-import type { Browser, Page } from "https://deno.land/x/puppeteer@14.1.1/mod.ts";
+import type { Browser, Page } from "https://deno.land/x/puppeteer@16.2.0/mod.ts";
 
 const BROWSER_SIGNALS = [
     'disconnected',
