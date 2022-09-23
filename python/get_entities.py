@@ -24,21 +24,24 @@ with open(f'{defaults.MAIN_CSV_PATH}.tmp', 'w', newline='') as csvfile:
 
     bar = ChargingBar('get entities', max=len(options))
     for o in options[1:]:
+        assert(o)
         def get_bco():
             (name, bco)= (o.text, o.attrs['value'])
             page = requests.post(URL, data={'bco': bco})
             soup = BeautifulSoup(page.content, 'html.parser')
+            img = None
             try:
                 img = soup.select_one(selectors.logosbancos).attrs['src']
                 img = img.replace('../', 'https://www.bcra.gob.ar/')
                 fn = f"{defaults.LOGOS_DATA_PATH}/{bco}.0.png"
                 web.get_img_logo(img, fn)
             except AttributeError as err:
-                print('img', name, err)
+                print(f'couldnt extract image from {img}: {err}')
                 img = None
 
             a = soup.select_one(selectors.entity_http)
             try:
+                assert(a)
                 a = a.attrs['href']
             except AttributeError:
                 a = soup.select_one(selectors.entity_mailto)
@@ -54,7 +57,7 @@ with open(f'{defaults.MAIN_CSV_PATH}.tmp', 'w', newline='') as csvfile:
         try:
             get_bco()
         except Exception as e:
-            print(f'Error processing: {e}')
+            print(f'Error processing: {o.url}')
 
         i+=1
         bar.next()
