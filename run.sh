@@ -15,5 +15,7 @@ echo "✨ augmenting data"
 ${PY} ./python/augment.py
 echo "🖼 croping augmented data"
 ${PY} ./python/crop.py ./data/augmented/images
+echo "✂ split dataset into train, val and test groups"
+${PY} ./python/split.py ./data/squares/
 echo "🧠 train model"
 sh train.sh
