@@ -13,7 +13,7 @@ ${PY} ./python/vendor.py --parallel $PARALLEL
 echo "☠ getting extra backgrounds from OpenFish"
 ${PY} ./python/openfish.py --parallel $PARALLEL
 echo "✨ augmenting data"
-${PY} ./python/augment.py
+${PY} ./python/augment.py --parallel $PARALLEL
 echo "🖼 croping augmented data"
 ${PY} ./python/crop.py ./data/augmented/images
 echo "✂ split dataset into train, val and test groups"
