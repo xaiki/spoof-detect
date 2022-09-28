@@ -24,6 +24,7 @@ import imtool
 import pipelines
 
 BATCH_SIZE = 16
+PARALLEL = 20
 
 def process(args):
     dest_images_path = os.path.join(args.dest, 'images')
@@ -129,7 +130,7 @@ def process(args):
     batches_generator = create_generator(batches)
 
     batch = 0
-    with pipeline.pool(processes=-1, seed=1) as pool:
+    with pipeline.pool(processes=args.parallel, seed=1) as pool:
         batches_aug = pool.imap_batches(batches_generator, output_buffer_size=5)
 
         print(f"Requesting next augmented batch...{batch}/{len(batches)}")
@@ -196,6 +197,9 @@ if __name__ == '__main__':
     parser.add_argument('--dst', dest='dest', type=str,
                         default=defaults.AUGMENTED_DATA_PATH,
                         help='dest dir')
+    parser.add_argument('--parallel', metavar='parallel', type=int,
+                        default=PARALLEL,
+                        help='number of concurrent jobs')
 
     args = parser.parse_args()
     process(args)
