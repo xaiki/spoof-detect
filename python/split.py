@@ -3,6 +3,17 @@ import os
 import math
 from common import defaults, mkdir
 
+PATHS = {
+    6: {
+        'images': lambda dest, d: os.path.join(dest, 'images', d ),
+        'labels': lambda dest, d: os.path.join(dest, 'labels', d )
+    },
+    5: {
+        'images': lambda desd, d: os.path.join(dest, d, 'images'),
+        'labels': lambda desd, d: os.path.join(dest, d, 'labels'),
+    }
+}
+
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(description='splits a yolo dataset between different data partitions')
@@ -12,8 +23,11 @@ if __name__ == '__main__':
                         help='data path', default=['train:0.8', 'val:0.1', 'test:0.1'])
     parser.add_argument('--dest', metavar='dest', type=str,
                         help='dest path', default=defaults.SPLIT_DATA_PATH)
+    parser.add_argument('--yolo', metavar='yolo', type=int,
+                        help='yolo version', default=6)
 
     args = parser.parse_args()
+    assert(PATHS[args.yolo])
 
     def image_to_label(i):
         l = i.replace('images', 'labels').replace('.png', '.txt').replace('.jpg', '.txt')
@@ -28,8 +42,8 @@ if __name__ == '__main__':
         p = np + 1
         np = min(p + math.floor(len(images)*float(r)), len(images))
 
-        cpi = os.path.join(args.dest, d, 'images')
-        cpl = os.path.join(args.dest, d, 'labels')
+        cpi = PATHS[args.yolo]['images'](args.dest, d)
+        cpl = PATHS[args.yolo]['labels'](args.dest, d)
         rpi = os.path.relpath(os.path.join(args.datapath, 'images'), cpi)
         rpl = os.path.relpath(os.path.join(args.datapath, 'labels'), cpl)
 
