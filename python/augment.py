@@ -25,6 +25,48 @@ import pipelines
 
 BATCH_SIZE = 16
 PARALLEL = 20
+MIN_BACKGROUND_SIZE = 500
+
+def process_bg(b):
+
+        imw = cv2.imread(b.path)
+        im, bb = imtool.remove_white(imw)
+        annot = None
+        label = b.path.replace('png', 'txt')
+        if os.path.exists(label):
+            # rewrite label with new coordinates
+            [ww, wh, _] = imw.shape
+            [iw, ih, _] = im.shape
+            es = imtool.read_centroids(label)
+            l = ''
+            for e in es:
+                [i, p, c] = e.values()
+                [x,y,w,h] = [
+                    max((c.x*ww - bb.x)/iw, 0),
+                    max((c.y*wh - bb.y)/ih, 0),
+                    (c.w*ww)/iw,
+                    (c.h*wh)/ih
+                ]
+
+                l += f'{int(i)} {x} {y} {w} {h}\n'
+            annot = l
+
+        if im.shape[0] > args.minbgsize and im.shape[1]> args.minbgsize:
+            return im, annot
+        else:
+            raise Exception(f'droping {b.path} after remove_white => {im.shape}')
+
+def filter_bgs(bgs):
+    ret = []
+    for b in bgs:
+        if b.path.endswith('txt'): continue
+        try:
+            img, annot = process_bg(b)
+        except Exception as e:
+            print(f'drop: {e}')
+            continue
+        ret.append((b, img, annot))
+    return ret
 
 def process(args):
     dest_images_path = os.path.join(args.dest, 'images')
@@ -40,9 +82,13 @@ def process(args):
         reader = csv.DictReader(f)
         db = {e.bco: e for e in [Entity.from_dict(d) for d in reader]}
 
-    background_images = [d for d in os.scandir(args.backgrounds)]
-    assert(len(background_images))
+    background_images = []
+    for d in args.background:
+        background_images.extend(os.scandir(d))
 
+    print(f'filtering {len(background_images)} background images from {args.background}')
+    background_images = filter_bgs(background_images)
+    assert(len(background_images))
     stats = {
         'failed': 0,
         'ok': 0
@@ -69,7 +115,6 @@ def process(args):
             if img.ndim < 3:
                 print(f'very bad dim: {img.ndim}')
 
-            img = imtool.remove_white(img)
             (h, w, c) = img.shape
 
             assert(w > 10)
@@ -95,8 +140,9 @@ def process(args):
             print(f'error loading: {d.path}: {e}')
 
     print(stats)
-    #print(len(logo_alphas), len(logo_images), len(logo_labels))
+
     assert(len(logo_alphas) == len(logo_images))
+    print(f"will process {len(logo_images)} images on {len(background_images)} backgrounds")
 
     # so that we don't get a lot of the same logos on the same page.
     zipped = list(zip(logo_images, logo_alphas))
@@ -117,7 +163,7 @@ def process(args):
 
         batches.append(UnnormalizedBatch(images=a,heatmaps=h))
 
-    bar = ChargingBar('augment', max=(len(batches)**2)/3*len(background_images))
+    bar = ChargingBar(f'augment ({len(logo_images)} logos {len(background_images)} bgs)', max=(len(batches)**2)/3*len(background_images))
     # We use a single, very fast augmenter here to show that batches
     # are only loaded once there is space again in the buffer.
     pipeline = pipelines.HUGE
@@ -137,16 +183,14 @@ def process(args):
         for i, batch_aug in enumerate(batches_aug):
             idx = list(range(len(batch_aug.images_aug)))
             random.shuffle(idx)
-            for j, d in enumerate(background_images):
+            for j, (d, img, annot) in enumerate(background_images):
+                basename = d.name.replace('.png', f'.{i}.{j}')
+                annotations = []
                 try:
-                    img = imtool.remove_white(cv2.imread(d.path))
+                    annotations.append(annot.rstrip())
                 except:
-                    print("couldnt remove white, skipping")
-                    next
+                    pass
 
-                basename = d.name.replace('.png', '') + f'.{i}.{j}'
-
-                anotations = []
                 for k in range(math.floor(len(batch_aug.images_aug)/3)):
                     bar.next()
                     logo_idx = (j+k*4)%len(batch_aug.images_aug)
@@ -165,7 +209,7 @@ def process(args):
                         bb = imtool.mix_alpha(img, logo, alpha[0],
                                               random.random(), random.random())
                         c = bb.to_centroid(img.shape)
-                        anotations.append(c.to_anotation(label))
+                        annotations.append(c.to_annotation(label))
                     except AssertionError as err:
                         print(f'couldnt process {i}, {j}: {err}')
                     except Exception as err:
@@ -175,7 +219,7 @@ def process(args):
                     cv2.imwrite(f'{dest_images_path}/{basename}.png', img)
                     label_path = f"{dest_labels_path}/{basename}.txt"
                     with open(label_path, 'a') as f:
-                        f.write('\n'.join(anotations))
+                        f.write('\n'.join(annotations))
                 except Exception:
                     print(f'couldnt write image {basename}')
 
@@ -186,13 +230,14 @@ def process(args):
 
 if __name__ == '__main__':
     import argparse
-
+    print("✨ augmenting data")
     parser = argparse.ArgumentParser(description='mix backgrounds and logos into augmented data for YOLO')
     parser.add_argument('--logos', metavar='logos', type=str,
                         default=defaults.LOGOS_DATA_PATH,
                         help='dir containing logos')
-    parser.add_argument('--backgrounds', metavar='backgrounds', type=str,
-                        default=defaults.SCREENSHOT_PATH,
+    parser.add_argument('--background', metavar='backgrounds', type=str,
+                        nargs='+',
+                        default=[defaults.SCREENSHOT_PATH, defaults.FISH_PATH],
                         help='dir containing background plates')
     parser.add_argument('--dst', dest='dest', type=str,
                         default=defaults.AUGMENTED_DATA_PATH,
@@ -200,6 +245,7 @@ if __name__ == '__main__':
     parser.add_argument('--parallel', metavar='parallel', type=int,
                         default=PARALLEL,
                         help='number of concurrent jobs')
-
+    parser.add_argument('--min-background-size', dest='minbgsize', type=int,
+                        default=MIN_BACKGROUND_SIZE, help='minimum background size')
     args = parser.parse_args()
     process(args)

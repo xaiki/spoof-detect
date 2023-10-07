@@ -3,6 +3,7 @@
 import os
 import math
 import cv2
+import base64
 import numpy as np
 from typing import NamedTuple, Tuple, List
 
@@ -30,6 +31,11 @@ class BoundingBox(NamedTuple):
     @classmethod
     def from_dict(cls, d):
         self = cls(x=d['x'], y=d['y'], w=d['width'], h=d['height'])
+        return self
+
+    @classmethod
+    def from_arr(cls, a):
+        self = cls(*a)
         return self
 
     @property
@@ -86,25 +92,33 @@ class Centroid(BoundingBox):
             , w=math.ceil(w*self.w)
             , h=math.ceil(h*self.h))
 
-    def to_anotation(self, id: int):
+    def to_annotation(self, id: int):
         return f'{id} {self.x} {self.y} {self.w} {self.h}'
 
-def read_marker(filename: str, Type: type):
+def read_base64(data):
+    ib = base64.b64decode(data[22:])
+    arr = np.frombuffer(ib, dtype = np.uint8)
+    return cv2.imdecode(arr, flags=cv2.IMREAD_COLOR)
+
+def read_markers(filename: str, Type: type):
     ret = []
-    bco = None
     with open(filename, 'r') as f:
         lines = f.readlines()
         for l in lines:
-            (b, x,y,w,h) = [float(i) for i in l.split(' ')]
-            bco = int(b)
-            ret.append(Type(x,y,w,h))
-    return bco, ret
-
-def read_bounding_boxes(filename: str):
-    return read_marker(filename, BoundingBox)
+            try:
+                (b, x,y,w,h, p) = [float(i) for i in l.split(' ')]
+            except:
+                try:
+                    (b, x,y,w,h) = [float(i) for i in l.split(' ')]
+                except:
+                    continue
+                p = -1
+            ret.append({"class": b, "prob": p, "box": Type(x,y,w,h)})
+    assert(len(ret))
+    return ret
 
 def read_centroids(filename: str):
-    return read_marker(filename, Centroid)
+    return read_markers(filename, Centroid)
 
 def coord_dict_to_point(c: dict):
     return coord_to_point(c['x'], c['y'], c['width'], c['height'])
@@ -138,10 +152,11 @@ def remove_white(img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGRA2GRAY)
     gray = 255*(gray<128)
     coords = cv2.findNonZero(gray)
-    x, y, w, h = cv2.boundingRect(coords) # Find minimum spanning bounding box
-    rect = img[y:y+h, x:x+w] # Crop the image - note we do this on the original image
+    # Find minimum spanning bounding box
+    bb = BoundingBox(*cv2.boundingRect(coords)) 
+    rect = img[bb.y:bb.y+bb.h, bb.x:bb.x+bb.w] # Crop the image - note we do this on the original image
 
-    return rect
+    return rect, bb
 
 
 def mix(a, b, fx, fy):
@@ -157,7 +172,7 @@ def mix_alpha(a, b, ba, fx, fy):
     if (aw*p < bw or ah*p < bh):
         f = min(p*aw/bw, p*ah/bh)
         nw, nh = floor_point(bw*f, bh*f)
-        # print(f'resizing to fit in {aw}x{ah}\t {bw}x{bh}\t=> {nw}x{nh}\tfactor {f}')
+        #print(f'resizing to fit in {aw}x{ah}\t {bw}x{bh}\t=> {nw}x{nh}\tfactor {f}')
         r = cv2.resize(b, (nw, nh), interpolation = cv2.INTER_LINEAR)
         rba = cv2.resize(ba, (nw, nh), interpolation = cv2.INTER_LINEAR)
 
@@ -181,13 +196,15 @@ def _mix_alpha(a, b, ba, fx, fy):
     mask = np.dstack((ba, ba, ba))
 
     a[y:y+bh,x:x+bw] = mat * (1 - mask) + cols * mask
+    #a[y:y+bh,x:x+bw] = cols
 
     return BoundingBox(x, y, bw, bh)
 
-def crop(id, fn, logos: List[Centroid], out = './data/squares', debug_out = './data/debug/'):
+def crop(id, fn, logos: List[Centroid], out = './data/squares'):
     basename = os.path.basename(fn).replace('.png', '')
     img_out = f"{out}/images"
     txt_out = f"{out}/labels"
+    debug_out = f"{defaults.DEBUG_PATH}/{out}"
     mkdir.make_dirs([debug_out, img_out, txt_out])
 
     im = cv2.imread(fn)

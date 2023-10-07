@@ -43,6 +43,7 @@ def download_all(feed, n_workers=PARALLEL, dest=defaults.FISH_PATH):
 if __name__ == '__main__':
     import argparse
 
+    print("☠ getting extra backgrounds from OpenFish")
     parser = argparse.ArgumentParser(description='screenshot openfish open list')
     parser.add_argument('--parallel', metavar='parallel', type=int,
                         default=PARALLEL,

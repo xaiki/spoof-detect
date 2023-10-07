@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
-import csv
 import concurrent.futures
 import requests
 
 from progress.bar import ChargingBar
 
-from entity import Entity
+from entity import Entity, read_entities
 from common import defaults,mkdir
 import web
 
 PARALLEL = 20
 
 def do_screenshot(e: Entity):
+    assert(e.url)
     sfn = requests.post('http://puppet:8000/screenshot', json={
         'url': e.url,
         'id': e.id,
@@ -19,18 +19,33 @@ def do_screenshot(e: Entity):
         'logos': f'{defaults.LOGOS_DATA_PATH}/{e.bco}.png'
     })
 
-ACTIONS = [web.get_cert, web.get_logos, do_screenshot]
+def get_entity_logo(e: Entity):
+    fn = f"{defaults.LOGOS_DATA_PATH}/{e.bco}.0.png"
+    web.get_img_logo(e.logo, fn)
 
-def from_csv(fn: str, n_workers = PARALLEL):
-    mkdir.make_dirs([defaults.SCREENSHOT_PATH])
-    with open(fn, newline='') as csvfile:
-        reader = csv.DictReader(csvfile)
-        with concurrent.futures.ThreadPoolExecutor(max_workers = n_workers) as executor:
+def from_csv(args):
+    ACTIONS = []
+    if (args.certs):
+        ACTIONS.append(web.get_cert)
+        mkdir.make_dirs([defaults.CERTS_PATH])
+    if (args.logos):
+        ACTIONS.append(web.get_logos)
+        mkdir.make_dirs([defaults.LOGOS_DATA_PATH])
+    if (args.screenshots):
+        ACTIONS.append(do_screenshot)
+        mkdir.make_dirs([defaults.SCREENSHOT_PATH])
+    if (args.entity_logo):
+        ACTIONS.append(get_entity_logo)
+        mkdir.make_dirs([defaults.LOGOS_DATA_PATH])
+
+    print(ACTIONS)
+    with concurrent.futures.ThreadPoolExecutor(max_workers = args.parallel) as executor:
             futures = {}
-            entities = [Entity.from_dict(d) for d in reader]
-            bar = ChargingBar('vendor', max=len(entities*len(ACTIONS)))
+            entities = read_entities(args.csv)
+            qs = len(entities.keys())*len(ACTIONS)
+            bar = ChargingBar(f'vendor ({qs} jobs)', max=qs)
 
-            for e in entities:
+            for e in entities.values():
                 futures.update({executor.submit(f, e): (e, f) for f in ACTIONS})
             print('waiting for futures')
 
@@ -48,7 +63,7 @@ def from_csv(fn: str, n_workers = PARALLEL):
 
 if __name__ == '__main__':
     import argparse
-
+    print("🌏 getting vendor data")
     parser = argparse.ArgumentParser(description='extract certificates and screenshots websites')
     parser.add_argument('--csv', metavar='csv', type=str,
                         default=defaults.MAIN_CSV_PATH,
@@ -56,6 +71,18 @@ if __name__ == '__main__':
     parser.add_argument('--parallel', metavar='parallel', type=int,
                         default=PARALLEL,
                         help='number of concurrent jobs')
+    parser.add_argument('--logos', metavar='logos', type=bool,
+                        action=argparse.BooleanOptionalAction,
+                        default=True, help='try to get logos')
+    parser.add_argument('--entity-logo', metavar='entity_logo', type=bool,
+                        action=argparse.BooleanOptionalAction,
+                        default=True, help='try to get logos form ENTITY')
+    parser.add_argument('--certs', metavar='certs', type=bool,
+                        action=argparse.BooleanOptionalAction,
+                        default=True, help='try to get certs')
+    parser.add_argument('--screenshots', metavar='screenshots', type=bool,
+                        action=argparse.BooleanOptionalAction,
+                        default=True, help='try to get screenshots')
 
     args = parser.parse_args()
-    from_csv(args.csv)
+    from_csv(args)

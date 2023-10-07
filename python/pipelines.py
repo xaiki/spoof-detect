@@ -13,8 +13,7 @@ sometimes = lambda aug: iaa.Sometimes(0.2, aug)
 HUGE = sometimes(iaa.Sequential(
     [
         # apply the following augmenters to most images
-        iaa.Fliplr(0.5), # horizontally flip 50% of all images
-        iaa.Flipud(0.2), # vertically flip 20% of all images
+        sometimes(iaa.Cartoon()),
         # crop images by -5% to 10% of their height/width
         sometimes(iaa.CropAndPad(
             percent=(-0.05, 0.1),

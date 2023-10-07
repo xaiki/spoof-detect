@@ -2,7 +2,6 @@
 import os
 import math
 from common import defaults, mkdir
-
 PATHS = {
     6: {
         'images': lambda dest, d: os.path.join(dest, 'images', d ),
@@ -16,6 +15,8 @@ PATHS = {
 
 if __name__ == '__main__':
     import argparse
+    print("✂ split dataset into train, val and test groups")
+    
     parser = argparse.ArgumentParser(description='splits a yolo dataset between different data partitions')
     parser.add_argument('datapath', metavar='datapath', type=str, 
                         help='csv file', default=defaults.SQUARES_DATA_PATH)
@@ -49,9 +50,14 @@ if __name__ == '__main__':
 
         mkdir.make_dirs([cpi, cpl])
         print( f'{d:6s} [ {p:6d}, {np:6d} ] ({np-p:6d}:{(np-p)/len(images):0.2f} )')
+
+        stats = {'images': 0, 'labels': 0}
         for si in images[p:np]:
+            stats['images'] += 1
             l = image_to_label(si.path)
             os.symlink(os.path.join(rpi, si.name), os.path.join(cpi, si.name))
             if l:
+                stats['labels'] +=1
                 nl = os.path.basename(l)
                 os.symlink(os.path.join(rpl, nl), os.path.join(cpl, nl))
+        print(stats)
