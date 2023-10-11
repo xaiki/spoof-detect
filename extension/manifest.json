@@ -1,0 +1,33 @@
+{
+  "manifest_version": 2,
+  "name": "Spoof detect",
+  "version": "0.0.1",
+  "icons": {
+    "48": "icons/48.png"
+  },
+  "description": "Try to detect website spoofing",
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["detect.js", "observer.js"]
+    }
+  ],
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "web_accessible_resources": [
+    "forts/*.png",
+    "pages/*.html"
+  ],
+  "browser_action": {
+    "default_icon": "icons/48.png",
+    "default_title": "Detect"
+  },
+  "permissions": [
+    "webRequest",
+    "webRequestBlocking",
+    "activeTab",
+    "tabs",
+    "<all_urls>"
+  ]
+}
