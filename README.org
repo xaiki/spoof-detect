@@ -5,7 +5,7 @@ pages with =ssl certificates= that do not match.
 
 The process is pretty simple:
  - [1/2] scrape gvt websites to get a list of entities.
-   - [x] 🇦🇷 BCRA ok
+   - [x] 🇦🇷  BCRA
    - [ ] other countries 
  - [x] get logos, names and url
  - [x] navigate the url, extract the ssl certificate and look for =img= and tags
@@ -13,12 +13,8 @@ The process is pretty simple:
  - [x] screenshot the page and slice it into tiles generating YOLO annotations for
    the detected logos
  - [x] augment data using the logos database and the logoless tiles as background images
- - [2/3] train YOLO
-   - [x] v5
-   - [x] v6
-   . [ ] v7 (actually slower than v6)
- - [ ] feed everything to a web extension that will detect the logos in any page
-   and show a warning if the =SSL certificate= mismatches the collected one.
+ - [x] train yolov5s
+ - [x] feed everything to a web extension that will detect the logos in any page and show a warning if the =SSL certificate= mismatches the collected one. (this is actually a bit hacky, as yolov6 has A LOT of postprocessing and i can't be bothered to reimplement it all in JS for TSJS to work, it currently relies on a rather hackish local deamon written in python)
 
 * running
 #+begin_src sh

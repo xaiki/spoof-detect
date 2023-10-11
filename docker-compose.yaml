@@ -16,8 +16,10 @@ services:
       - "./data:/app/data:z"
 
   geckodriver:
-    image: docker.io/instrumentisto/geckodriver
-    entrypoint: ["sh", "-c", "while true; do geckodriver --binary=/opt/firefox/firefox --log warn --port 4444 --host 0.0.0.0; sleep 2; done"]
+    build:
+      dockerfile: Dockerfile.geckodriver
+      context: .
+    entrypoint: ["sh", "-c", "./poormans-nc.sh & while true; do geckodriver --binary=/opt/firefox/firefox --log warn --port 4444 --host 0.0.0.0; sleep 2; done"]
     ports: # this is not required but nice for local debug
       - "4444:4444"
 
