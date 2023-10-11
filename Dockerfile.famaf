@@ -1,0 +1,14 @@
+FROM docker.io/nvidia/cuda:11.4.3-runtime-ubuntu20.04
+MAINTAINER Niv Sardi <x@filtra.me>
+WORKDIR /app
+
+RUN apt update && \
+    export DEBIAN_FRONTEND=noninteractive && \
+    apt install -y libcairo2 libglib2.0-0 libgl1 python3-pip && \
+    rm -rf /var/cache/apt
+COPY ./yolov5/requirements.txt ./requirements.txt
+RUN pip install -r ./requirements.txt --extra-index-url https://download.pytorch.org/whl/lts/1.8/cu111
+RUN pip3 install torch==1.8.2 torchvision==0.9.2 torchaudio==0.8.2 --extra-index-url https://download.pytorch.org/whl/lts/1.8/cu111
+
+CMD sh -c 'while true; do  echo "🐍 waiting" ; sleep 2h; done'
+
